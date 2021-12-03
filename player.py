@@ -1,7 +1,6 @@
 import math
 from settings import *
-from floor import Point
-
+from floor import Point, Line_segment
 
 class Player(Point):
     def __init__(self, x=0, y=0, angle_w=90, h=1.8, h_down=0, angle_h=0, speed=5):
@@ -27,7 +26,7 @@ class Player(Point):
         self.top_angle = (self.angle_h + self.fov_h / 2) % 360
         self.bott_angle = (self.angle_h - self.fov_h / 2) % 360
 
-    def run(self, direction, fps):
+    def run(self, direction, fps, floor):
         if fps != 0:
             time = 1 / fps
             dist = self.speed * time
@@ -43,11 +42,27 @@ class Player(Point):
 
             delta_x = math.cos(math.radians(angle)) * dist
             delta_y = math.sin(math.radians(angle)) * dist
-            self.x += delta_x
-            self.y += delta_y
-            self.pos = (self.x, self.y)
 
-            return delta_x, delta_y
+            move_vector = Line_segment(self, Point(self.x + delta_x, self.y + delta_y))
+
+            is_intersection = False
+            for build in floor.build_list:
+                for wall in build.line_list:
+                    intersection = move_vector.find_intersection(wall)
+                    if intersection:
+                        is_intersection = True
+                        break
+                if is_intersection:
+                    break
+
+            if not is_intersection:
+                self.x += delta_x
+                self.y += delta_y
+                self.pos = (self.x, self.y)
+
+                return delta_x, delta_y
+            else:
+                return 0, 0
         return 0, 0
 
     def fly(self, direction, fps):

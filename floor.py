@@ -37,14 +37,6 @@ class Line_segment:
         # поправить:
         self.h = point1.h
 
-
-class Ray(Line_segment):
-    def __init__(self, point1, angle):
-        x2 = point1.x + math.cos(math.radians(angle)) * MAX_DIST_RAY
-        y2 = point1.y + math.sin(math.radians(angle)) * MAX_DIST_RAY
-        point2 = Point(x2, y2)
-        super(Ray, self).__init__(point1, point2)
-
     def find_intersection(self, other):
         k1, b1 = self.k, self.b
         k2, b2 = other.k, other.b
@@ -59,6 +51,14 @@ class Ray(Line_segment):
             return Point(x=x, y=y)
         else:
             return None
+
+
+class Ray(Line_segment):
+    def __init__(self, point1, angle):
+        x2 = point1.x + math.cos(math.radians(angle)) * MAX_DIST_RAY
+        y2 = point1.y + math.sin(math.radians(angle)) * MAX_DIST_RAY
+        point2 = Point(x2, y2)
+        super(Ray, self).__init__(point1, point2)
 
 
 class Build:

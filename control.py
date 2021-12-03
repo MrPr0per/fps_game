@@ -3,7 +3,7 @@ import debug
 from settings import *
 
 
-def control(player, clock, minimap):
+def control(player, clock, minimap, floor):
     sensitivity = 0.06
 
     if pygame.mouse.get_focused():
@@ -23,20 +23,16 @@ def control(player, clock, minimap):
             if event.key == pygame.K_SPACE:
                 debug.DEBUG = True
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_w]:
-        delta_x, delta_y = player.run(FORWARD, clock.get_fps())
-        minimap.CENTER_W -= delta_x * minimap.SCALE
-        minimap.CENTER_H += delta_y * minimap.SCALE
-    if keys[pygame.K_a]:
-        delta_x, delta_y = player.run(LEFT, clock.get_fps())
-        minimap.CENTER_W -= delta_x * minimap.SCALE
-        minimap.CENTER_H += delta_y * minimap.SCALE
-    if keys[pygame.K_d]:
-        delta_x, delta_y = player.run(RIGHT, clock.get_fps())
-        minimap.CENTER_W -= delta_x * minimap.SCALE
-        minimap.CENTER_H += delta_y * minimap.SCALE
-    if keys[pygame.K_s]:
-        delta_x, delta_y = player.run(BACK, clock.get_fps())
+    if keys[pygame.K_w] or keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_s]:
+        delta_x, delta_y = 0, 0
+        if keys[pygame.K_w]:
+            delta_x, delta_y = player.run(FORWARD, clock.get_fps(), floor)
+        if keys[pygame.K_a]:
+            delta_x, delta_y = player.run(LEFT, clock.get_fps(), floor)
+        if keys[pygame.K_d]:
+            delta_x, delta_y = player.run(RIGHT, clock.get_fps(), floor)
+        if keys[pygame.K_s]:
+            delta_x, delta_y = player.run(BACK, clock.get_fps(), floor)
         minimap.CENTER_W -= delta_x * minimap.SCALE
         minimap.CENTER_H += delta_y * minimap.SCALE
 

@@ -42,7 +42,7 @@ class Drawing:
                             min_dist = dist
                             height = wall.h
             if min_dist and height:
-                # min_dist *= math.cos(math.radians(self.player.angle_w - angle))
+                min_dist *= math.cos(math.radians(self.player.angle_w - angle))
                 proection_screen = math.tan(
                     math.radians(self.player.angle_h + FOW_H / 2)) * min_dist + math.tan(
                     math.radians(-self.player.angle_h + FOW_H / 2)) * min_dist
