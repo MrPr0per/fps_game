@@ -33,6 +33,7 @@ def control(player, clock, minimap, floor):
             delta_x, delta_y = player.run(RIGHT, clock.get_fps(), floor)
         if keys[pygame.K_s]:
             delta_x, delta_y = player.run(BACK, clock.get_fps(), floor)
+        # TODO: повиксить баг движения сетки когда не надо
         minimap.CENTER_W -= delta_x * minimap.SCALE
         minimap.CENTER_H += delta_y * minimap.SCALE
 
