@@ -24,18 +24,25 @@ def control(player, clock, minimap, floor):
                 debug.DEBUG = True
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w] or keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_s]:
-        delta_x, delta_y = 0, 0
+        delta_x_all, delta_y_all = 0, 0
         if keys[pygame.K_w]:
             delta_x, delta_y = player.run(FORWARD, clock.get_fps(), floor)
+            delta_x_all += delta_x
+            delta_y_all += delta_y
         if keys[pygame.K_a]:
             delta_x, delta_y = player.run(LEFT, clock.get_fps(), floor)
+            delta_x_all += delta_x
+            delta_y_all += delta_y
         if keys[pygame.K_d]:
             delta_x, delta_y = player.run(RIGHT, clock.get_fps(), floor)
+            delta_x_all += delta_x
+            delta_y_all += delta_y
         if keys[pygame.K_s]:
             delta_x, delta_y = player.run(BACK, clock.get_fps(), floor)
-        # TODO: повиксить баг движения сетки когда не надо
-        minimap.CENTER_W -= delta_x * minimap.SCALE
-        minimap.CENTER_H += delta_y * minimap.SCALE
+            delta_x_all += delta_x
+            delta_y_all += delta_y
+        minimap.CENTER_W -= delta_x_all * minimap.SCALE
+        minimap.CENTER_H += delta_y_all * minimap.SCALE
 
     if keys[pygame.K_SPACE]:
         player.fly(UP, clock.get_fps())
