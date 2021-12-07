@@ -30,17 +30,17 @@ class Drawing:
             min_dist = None
             height = None
             for build in self.floor.build_list:
-                for wall in build.line_list:
+                for wall in build.wall_list:
                     crd_intersection = ray.find_intersection(wall)
                     if crd_intersection:
                         dist = math.hypot(crd_intersection.x - self.player.x,
                                           crd_intersection.y - self.player.y)
                         if min_dist is None:
                             min_dist = dist
-                            height = wall.h
+                            height = crd_intersection.h
                         elif dist < min_dist:
                             min_dist = dist
-                            height = wall.h
+                            height = crd_intersection.h
             if min_dist and height:
                 min_dist *= math.cos(math.radians(self.player.angle_w - angle))
                 proection_screen = math.tan(
@@ -104,11 +104,11 @@ class Drawing:
                                  self.player.y + math.sin(math.radians(angle)) * MAX_DIST_RAY, self.player, self.minimap))
         # карта
         for build in self.floor.build_list:
-            for point in build.point_list:
+            for point in build.column_list:
                 x, y = convert_crds_to_scren(*point.pos, self.player, self.minimap)
                 pygame.draw.circle(self.minimap.sc, (200, 200, 200), (x, y), 3)
             points = list(
-                map(lambda a: convert_crds_to_scren(*a.pos, self.player, self.minimap), build.point_list))
+                map(lambda a: convert_crds_to_scren(*a.pos, self.player, self.minimap), build.column_list))
             # points = list(map(lambda a: (a.x, a.y), build.point_list))
             pygame.draw.lines(self.minimap.sc, (200, 200, 200), build.closed, points)
 
