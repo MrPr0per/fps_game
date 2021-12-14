@@ -74,9 +74,9 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale):
             if event.key == pygame.K_KP_ENTER:
                 print('floor = Floor(build_list=[')
                 for build in build_list:
-                    print('\tBuild(point_list=[')
+                    print('\tBuild(column_list=[')
                     for point in build[1]:
-                        print(f'\t\tPoint{point},')
+                        print(f'\t\tColumn{point},')
                     print(f'\t], closed={build[0]}),')
                 print('])')
 

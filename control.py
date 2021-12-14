@@ -7,12 +7,15 @@ def control(player, clock, minimap, floor):
     sensitivity = 0.06
 
     if pygame.mouse.get_focused():
-        difference_w = pygame.mouse.get_pos()[0] - WIDTH / 2
-        # difference_h = pygame.mouse.get_pos()[1] - HEIGHT / 2
-        pygame.mouse.set_pos([WIDTH / 2, HEIGHT / 2])
-        # player.turn(-difference_w * sensitivity, -difference_h * sensitivity)
-        player.turn(-difference_w * sensitivity, 0)
-
+        if VERTICAL_MOVE_HEAD:
+            difference_w = pygame.mouse.get_pos()[0] - WIDTH / 2
+            difference_h = pygame.mouse.get_pos()[1] - HEIGHT / 2
+            pygame.mouse.set_pos([WIDTH / 2, HEIGHT / 2])
+            player.turn(-difference_w * sensitivity, -difference_h * sensitivity)
+        else:
+            difference_w = pygame.mouse.get_pos()[0] - WIDTH / 2
+            pygame.mouse.set_pos([WIDTH / 2, HEIGHT / 2])
+            player.turn(-difference_w * sensitivity, 0)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()

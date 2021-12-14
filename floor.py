@@ -19,7 +19,7 @@ class Point:
 
 
 class Column(Point):
-    def __init__(self, x, y, h=5, h_down=0):
+    def __init__(self, x, y, h=3, h_down=0):
         self.h = h
         self.h_down = h_down
         super().__init__(x, y)
@@ -55,6 +55,16 @@ class Line_segment:
             return None
 
 
+class Line:
+    def __init__(self, point1, point2):
+        x1, y1 = point1.get_pos()
+        x2, y2 = point2.get_pos()
+        if x1 == x2:
+            x2 += 10 ** -6
+        self.k = (y2 - y1) / (x2 - x1)
+        self.b = y1 - self.k * x1
+
+
 class Wall(Line_segment):
     def __init__(self, column1, column2):
         self.column1 = column1
@@ -78,22 +88,30 @@ class Ray(Line_segment):
         point2 = Point(x2, y2)
         super().__init__(point1, point2)
 
-    def find_intersection(self, wall):
+    def find_intersection(self, other):
         k1, b1 = self.k, self.b
-        k2, b2 = wall.k, wall.b
+        k2, b2 = other.k, other.b
         if k1 - k2 == 0:
-            k1 = 10 ** -6
+            k1 = ALMOST_ZERO
         x = (b2 - b1) / (k1 - k2)
-        left_border1, right_border1 = self.borders
-        left_border2, right_border2 = wall.borders
-        if (left_border1 <= x <= right_border1) and (left_border2 <= x <= right_border2):
-            y = k1 * x + b1
-            dist_from_beginning = math.hypot(wall.column1.x - x, wall.column2.y - y)
-            h = wall.vertical_k * dist_from_beginning + wall.vertical_b
-            h_down = wall.vertical_k_down * dist_from_beginning + wall.vertical_b_down
+        if type(other) != Line:
+            left_border1, right_border1 = self.borders
+            left_border2, right_border2 = other.borders
+            if not ((left_border1 <= x <= right_border1) and (left_border2 <= x <= right_border2)):
+                return None
+        y = k1 * x + b1
+        if type(other) != Line:
+            dist_from_beginning = math.hypot(other.column1.x - x, other.column2.y - y)
+        if type(other) == Wall:
+            h = other.vertical_k * dist_from_beginning + other.vertical_b
+            h_down = other.vertical_k_down * dist_from_beginning + other.vertical_b_down
             return Column(x=x, y=y, h=h, h_down=h_down)
-        else:
-            return None
+        elif type(other) == Line_segment:
+            return Point(x=x, y=y)
+        elif type(other) == Line:
+            return Point(x=x, y=y)
+
+
 
 
 class Build:
@@ -341,5 +359,18 @@ def load_floor(num_floor):
                 Column(6.347076114093801, 7.7670470542723535),
             ], closed=False),
         ])
-
+    if num_floor == 6:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(math.sin(math.radians(i)) * 10, math.cos(math.radians(i)) * 10) for i in range(0, 360, 10)
+            ], closed=False),
+        ])
+    if num_floor == 7:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(i, 0, i, 0),
+                Column(i + 1, 0, i, 0),
+            ], closed=False)
+            for i in range(2,100)
+        ])
     return floor

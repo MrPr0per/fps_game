@@ -4,7 +4,7 @@ from floor import Column, Line_segment, Point
 
 
 class Player(Column):
-    def __init__(self, x=0, y=0, angle_w=90, h=1.8, h_down=0, angle_h=0, speed=5):
+    def __init__(self, x=0, y=-1, angle_w=90, h=1.8, h_down=0, angle_h=0, speed=5):
         super().__init__(x=x, y=y, h=h, h_down=h_down)
         self.angle_w = angle_w % 360
         self.fov_w = FOW_W
