@@ -4,7 +4,7 @@ from floor import Column, Line_segment, Point
 
 
 class Player(Column):
-    def __init__(self, x=0, y=-1, angle_w=90, h=1.8, h_down=0, angle_h=0, speed=5):
+    def __init__(self, x=0, y=0, angle_w=90, h=1.8, h_down=0, angle_h=0, speed=5):
         super().__init__(x=x, y=y, h=h, h_down=h_down)
         self.angle_w = angle_w % 360
         self.fov_w = FOW_W
@@ -46,24 +46,24 @@ class Player(Column):
 
             move_vector = Line_segment(self, Point(self.x + delta_x, self.y + delta_y))
 
-            is_intersection = False
-            for build in floor.build_list:
-                for wall in build.wall_list:
-                    intersection = move_vector.find_intersection(wall)
-                    if intersection:
-                        is_intersection = True
+            if COLLISION:
+                is_intersection = False
+                for build in floor.build_list:
+                    for wall in build.wall_list:
+                        intersection = move_vector.find_intersection(wall)
+                        if intersection:
+                            is_intersection = True
+                            break
+                    if is_intersection:
                         break
                 if is_intersection:
-                    break
+                    return 0, 0
 
-            if not is_intersection:
-                self.x += delta_x
-                self.y += delta_y
-                self.pos = (self.x, self.y)
+            self.x += delta_x
+            self.y += delta_y
+            self.pos = (self.x, self.y)
 
-                return delta_x, delta_y
-            else:
-                return 0, 0
+            return delta_x, delta_y
         return 0, 0
 
     def fly(self, direction, fps):
@@ -71,6 +71,6 @@ class Player(Column):
             time = 1 / fps
             dist = self.speed * time
             if direction == UP:
-                self.h += dist
+                self.h_down += dist
             if direction == DOWN:
-                self.h -= dist
+                self.h_down -= dist

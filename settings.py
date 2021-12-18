@@ -8,6 +8,7 @@ HALF_WIDTH = WIDTH // 2
 HALF_HEIGHT = HEIGHT // 2
 DEBUG = False
 VERTICAL_MOVE_HEAD = True
+COLLISION = False
 
 # raycast
 FOW_W = 90
@@ -17,6 +18,11 @@ NUM_RAYS = int(WIDTH * SCALE_N_RAYS)
 DELTA_ANGLE = FOW_W / NUM_RAYS
 MAX_DIST_RAY = 100
 DIST_TO_SCREEN = NUM_RAYS / (2 * math.tan(math.radians(FOW_W / 2)))
+DRAW_ALL_WALS = True
+
+# horizon
+MAX_DIST_HORIZON = 30
+SMOOTHING_HORIZON = 5
 
 # fps
 FPS_POS = (WIDTH - 65, 5)
@@ -31,5 +37,5 @@ UP = 'up'
 DOWN = 'down'
 
 # math
-ALMOST_ZERO = 10 ** -10
-ALMOST_INFINITY = 10 ** 10
+ALMOST_ZERO = 10 ** -5
+ALMOST_INFINITY = 10 ** 5

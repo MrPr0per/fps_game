@@ -1,7 +1,7 @@
 import pygame
 import debug
 from settings import *
-from floor import Ray, Line_segment, Point, Line
+from floor import Ray, Line_segment, Point, Line, Column
 import math
 
 
@@ -21,6 +21,7 @@ class Drawing:
         self.sc.fill((0, 0, 0))
 
     def draw_raycast_alt_version(self):
+        # тут какой то странны баг с отрисовкой, когда находишься близко к стене
         for i in range(NUM_RAYS):
             cur_angle = self.player.left_angle - i * DELTA_ANGLE
             ray = Ray(self.player, cur_angle)
@@ -49,19 +50,21 @@ class Drawing:
                 #       в виде сбоку:
 
                 # определяем отрезок экрана
-                dist_to_border = 0.5 * WIDTH / math.sin(math.radians(FOW_W/2))
+                dist_to_border = 0.5 * WIDTH / math.sin(math.radians(FOW_W / 2))
                 full_h = self.player.h_down + self.player.h
                 top_border_point = Point(
-                        0 + math.cos(math.radians(self.player.top_angle)) * dist_to_border,
-                        full_h + math.sin(math.radians(self.player.top_angle)) * dist_to_border,)
+                    0 + math.cos(math.radians(self.player.top_angle)) * dist_to_border,
+                    full_h + math.sin(math.radians(self.player.top_angle)) * dist_to_border, )
                 bott_border_point = Point(
-                        0 + math.cos(math.radians(self.player.bott_angle)) * dist_to_border,
-                        full_h + math.sin(math.radians(self.player.bott_angle)) * dist_to_border,)
+                    0 + math.cos(math.radians(self.player.bott_angle)) * dist_to_border,
+                    full_h + math.sin(math.radians(self.player.bott_angle)) * dist_to_border, )
                 screen = Line(top_border_point, bott_border_point)
 
                 # определяем лучи от головы игрока до верхней и нижней точек column
-                ray_bott = Ray(Point(0, full_h), find_angle_point(Point(0, full_h), Point(min_dist, nearest_intersection.h_down)))
-                ray_top = Ray(Point(0, full_h), find_angle_point(Point(0, full_h), Point(min_dist, nearest_intersection.h)))
+                ray_bott = Ray(Point(0, full_h), find_angle_point(Point(0, full_h), Point(min_dist,
+                                                                                          nearest_intersection.h_down)))
+                ray_top = Ray(Point(0, full_h), find_angle_point(Point(0, full_h), Point(min_dist,
+                                                                                         nearest_intersection.h)))
 
                 # определяем их пересечения с экраном
                 intersection_bott = ray_bott.find_intersection(screen)
@@ -90,21 +93,81 @@ class Drawing:
                 except Exception:
                     print(brightness)
 
-                pygame.draw.rect(self.sc, color, (int(i / SCALE_N_RAYS), int(dist_top), int(WIDTH / NUM_RAYS), int(visual_height)))
+                pygame.draw.rect(self.sc, color, (
+                    int(i / SCALE_N_RAYS), int(dist_top), int(WIDTH / NUM_RAYS),
+                    int(visual_height)))
+
+    def draw_horizon(self):
+        # dist =
+        # n = 180
+        # angle_point = find_angle_point(
+        #     Point(0, self.player.h_down + self.player.h),
+        #     Point(dist, 0))
+        # if angle_point > n:
+        #     angle_point -= 360
+        #
+        # angle_border_point = self.player.bott_angle
+        # if angle_border_point > n:
+        #     angle_border_point -= 360
+        #
+        # angular_size_h_down = angle_point - angle_border_point
+        # screen_h_down = HEIGHT * angular_size_h_down / self.player.fov_h
+        # color = pygame.Color(0)
+        # smooth = 5
+        # brightness = 100 * smooth / (dist + smooth)
+        # try:
+        #     color.hsva = (100, 70, brightness)
+        # except Exception:
+        #     print(brightness)
+        #
+        # pygame.draw.rect(self.sc, color,
+        #                  (0, HEIGHT - screen_h_down, WIDTH, screen_h_down))
+
+        last_h = 0
+        for i in range(MAX_DIST_HORIZON * SMOOTHING_HORIZON):
+            # dist = ALMOST_INFINITY
+            dist = i / SMOOTHING_HORIZON
+            n = 180
+            angle_point = find_angle_point(
+                Point(0, self.player.h_down + self.player.h),
+                Point(dist, 0))
+            if angle_point > n:
+                angle_point -= 360
+
+            angle_border_point = self.player.bott_angle
+            if angle_border_point > n:
+                angle_border_point -= 360
+
+            angular_size_h_down = angle_point - angle_border_point
+            screen_h_down = HEIGHT * angular_size_h_down / self.player.fov_h
+            color = pygame.Color(0)
+            smooth = 5
+            brightness = 50 * smooth / (dist + smooth)
+            try:
+                color.hsva = (100, 70, brightness)
+            except Exception:
+                print(brightness)
+
+            pygame.draw.rect(self.sc, color,
+                             (0, HEIGHT - screen_h_down, WIDTH, screen_h_down - last_h + 1))
+            last_h = screen_h_down
 
     def draw_raycast(self):
-        debug_first_ray = False
-        for i in range(NUM_RAYS):
-            cur_angle = self.player.left_angle - i * DELTA_ANGLE
+        debug.debug_first_ray = False
+        for ray_number in range(NUM_RAYS):
+            cur_angle = self.player.left_angle - ray_number * DELTA_ANGLE
             ray = Ray(self.player, cur_angle)
             min_dist = None
             nearest_intersection = None
+            list_intersections = []
             for build in self.floor.build_list:
                 for wall in build.wall_list:
                     intersection = ray.find_intersection(wall)
                     if intersection:
                         dist = math.hypot(intersection.x - self.player.x,
                                           intersection.y - self.player.y)
+                        if DRAW_ALL_WALS:
+                            list_intersections.append((dist, intersection))
                         if min_dist:
                             if dist < min_dist:
                                 min_dist = dist
@@ -114,65 +177,17 @@ class Drawing:
                             nearest_intersection = intersection
 
             if min_dist and nearest_intersection:
-                if debug.DEBUG:
-                    print('debug')
-                    debug.DEBUG = False
-
-                min_dist *= math.cos(math.radians(self.player.angle_w - cur_angle))
-
-                n = 180
-                angle_top_point = find_angle_point(
-                    Point(0, self.player.h_down + self.player.h),
-                    Point(min_dist, nearest_intersection.h_down + nearest_intersection.h))
-                if angle_top_point > n:
-                    angle_top_point -= 360
-                if debug_first_ray:
-                    print(int(angle_top_point), end='\t')
-
-                angle_bott_point = -360 + find_angle_point(
-                    Point(0, self.player.h_down + self.player.h),
-                    Point(min_dist, nearest_intersection.h_down))
-                if angle_bott_point < -n:
-                    angle_bott_point += 360
-                if debug_first_ray:
-                    print(int(angle_bott_point), end='\t')
-
-                angle_border_point = self.player.bott_angle
-                if angle_border_point > n:
-                    angle_border_point -= 360
-                if debug_first_ray:
-                    print(int(angle_border_point))
-
-                if debug_first_ray:
-                    pygame.draw.circle(self.sc, (255, 255, 255), (HALF_WIDTH, HALF_HEIGHT), 40, 2)
-                    pygame.draw.line(self.sc, (255, 255, 0), (HALF_WIDTH, HALF_HEIGHT), (
-                        HALF_WIDTH + math.cos(math.radians(angle_top_point)) * 100,
-                        HALF_HEIGHT - math.sin(math.radians(angle_top_point)) * 100))
-                    pygame.draw.line(self.sc, (255, 255, 0), (HALF_WIDTH, HALF_HEIGHT), (
-                        HALF_WIDTH + math.cos(math.radians(angle_bott_point)) * 100,
-                        HALF_HEIGHT - math.sin(math.radians(angle_bott_point)) * 100))
-                    pygame.draw.line(self.sc, (255, 0, 0), (HALF_WIDTH, HALF_HEIGHT), (
-                        HALF_WIDTH + math.cos(math.radians(angle_border_point)) * 100,
-                        HALF_HEIGHT - math.sin(math.radians(angle_border_point)) * 100))
-                    pygame.draw.line(self.sc, (255, 0, 255), (HALF_WIDTH, HALF_HEIGHT), (
-                        HALF_WIDTH + math.cos(math.radians(self.player.top_angle)) * 100,
-                        HALF_HEIGHT - math.sin(math.radians(self.player.top_angle)) * 100))
-                    debug_first_ray = False
-
-                angular_size_h = angle_top_point - angle_bott_point
-                screen_h = HEIGHT * angular_size_h / self.player.fov_h
-                angular_size_h_down = angle_bott_point - angle_border_point
-                screen_h_down = HEIGHT * angular_size_h_down / self.player.fov_h
-                color = pygame.Color(0)
-                smooth = 5
-                brightness = 100 * smooth / (min_dist + smooth)
-                try:
-                    color.hsva = (0, 0, brightness)
-                except Exception:
-                    print(brightness)
-
-                pygame.draw.rect(self.sc, color, (
-                i / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, WIDTH / NUM_RAYS, screen_h))
+                if DRAW_ALL_WALS:
+                    list_intersections = sorted(list_intersections, key=lambda x: x[0],
+                                                reverse=True)
+                    for dist, intersection in list_intersections:
+                        draw_column(dist=dist, intersection=intersection,
+                                    player=self.player, cur_angle=cur_angle, sc=self.sc,
+                                    ray_number=ray_number)
+                else:
+                    draw_column(dist=min_dist, intersection=nearest_intersection,
+                                player=self.player, cur_angle=cur_angle, sc=self.sc,
+                                ray_number=ray_number)
 
     def draw_minimap(self):
         self.minimap.sc.fill((0, 0, 0))
@@ -226,7 +241,7 @@ class Drawing:
         for build in self.floor.build_list:
             for point in build.column_list:
                 x, y = convert_crds_to_scren(*point.pos, self.player, self.minimap)
-                pygame.draw.circle(self.minimap.sc, (200, 200, 200), (x, y), 3)
+                pygame.draw.circle(self.minimap.sc, (200, 200, 200), (x, y), 2)
             points = list(
                 map(lambda a: convert_crds_to_scren(*a.pos, self.player, self.minimap),
                     build.column_list))
@@ -240,6 +255,7 @@ class Drawing:
 
     def draw_fps(self):
         fps = int(self.clock.get_fps())
+        color = pygame.Color('white')
         if fps < 30:
             color = pygame.Color('blue')
         elif fps < 60:
@@ -270,6 +286,87 @@ def find_angle_point(player, point):
 
 def find_dist(point1, point2):
     return math.hypot(point1.x - point2.x, point1.y - point2.y)
+
+
+def find_color(dist):
+    color = pygame.Color(0)
+    smooth = 10
+    brightness = 100 * smooth / (dist + smooth)
+    try:
+        color.hsva = (0, 0, brightness)
+    except Exception:
+        print(brightness)
+
+    return color
+
+
+def correcting_angle(angle):
+    """эта функция нужна, чтобы значения угла были не от 0 до 360, а в нужном диапазоне
+    (включая отрицательные значения и не включая большие положительные"""
+    n = 180
+    if angle > n:
+        angle -= 360
+    elif angle < -n:
+        angle += 360
+
+    return angle
+
+
+def find_screen_h_and_h_down(dist, intersection, player, sc):
+    # находим углы ключевых точек
+    angle_top_point = find_angle_point(
+        Point(0, player.h_down + player.h),
+        Point(dist, intersection.h_down + intersection.h))
+
+    angle_bott_point = -360 + find_angle_point(
+        Point(0, player.h_down + player.h),
+        Point(dist, intersection.h_down))
+
+    angle_border_point = player.bott_angle
+
+    # корректируем их
+    angle_top_point = correcting_angle(angle_top_point)
+    angle_bott_point = correcting_angle(angle_bott_point)
+    angle_border_point = correcting_angle(angle_border_point)
+
+    # дебажим
+    if debug.debug_first_ray:
+        print(int(angle_top_point), int(angle_bott_point), int(angle_border_point), sep='\t')
+        pygame.draw.circle(sc, (255, 255, 255), (HALF_WIDTH, HALF_HEIGHT), 40, 2)
+        for angle, color in [(angle_top_point, (255, 255, 0)),
+                             (angle_bott_point, (255, 255, 255)),
+                             (angle_border_point, (255, 0, 0)),
+                             (player.top_angle, (0, 0, 255))]:
+            pygame.draw.line(sc, color, (HALF_WIDTH, HALF_HEIGHT), (
+                HALF_WIDTH + math.cos(math.radians(angle)) * 100,
+                HALF_HEIGHT - math.sin(math.radians(angle)) * 100))
+        debug.debug_first_ray = False
+
+    # находим угловой размер h и h_down cтены
+    angular_size_h = angle_top_point - angle_bott_point
+    angular_size_h_down = angle_bott_point - angle_border_point
+
+    # переводим угловые значения в экранные
+    screen_h = HEIGHT * angular_size_h / player.fov_h
+    screen_h_down = HEIGHT * angular_size_h_down / player.fov_h
+
+    return screen_h, screen_h_down
+
+
+def draw_column(dist, intersection, player, cur_angle, sc, ray_number):
+    # убираем эффект рыбьего глаза
+    dist *= math.cos(math.radians(player.angle_w - cur_angle))
+
+    # находим экранную высоту стены и ее экранное расстояние над землей
+    screen_h, screen_h_down = find_screen_h_and_h_down(dist, intersection, player, sc)
+
+    # определяем цвет в зависимости от расстояния
+    color = find_color(dist)
+
+    # отрисовка
+    pygame.draw.rect(sc, color, (
+        ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, WIDTH / NUM_RAYS,
+        screen_h))
 
 # def calculate_perspective(point_crds, player_crds, player_angle, player_fov, screen_border_angle,
 #                           screen_size):

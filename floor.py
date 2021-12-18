@@ -73,6 +73,8 @@ class Wall(Line_segment):
         h1 = column1.h
         h2 = column2.h
         self.vertical_b = h1
+        if d == 0:
+            d = ALMOST_ZERO
         self.vertical_k = (h2 - h1) / d
         h1_down = column1.h_down
         h2_down = column2.h_down
@@ -110,8 +112,6 @@ class Ray(Line_segment):
             return Point(x=x, y=y)
         elif type(other) == Line:
             return Point(x=x, y=y)
-
-
 
 
 class Build:
@@ -362,9 +362,289 @@ def load_floor(num_floor):
     if num_floor == 6:
         floor = Floor(build_list=[
             Build(column_list=[
-                Column(math.sin(math.radians(i)) * 10, math.cos(math.radians(i)) * 10) for i in range(0, 360, 10)
+                Column(-1, 3),
+                Column(-1, 5),
+                Column(-2, 5),
+                Column(-2, 6),
+                Column(-4, 6),
+                Column(-4, 4),
+                Column(-5, 4),
+                Column(-5, 3),
+                Column(-1, 3),
+            ], closed=False),
+            Build(column_list=[
+                Column(-4, 2),
+                Column(-5, 2),
+                Column(-5, -1),
+                Column(-8, -1),
+                Column(-8, 0),
+                Column(-9, 0),
+                Column(-9, -2),
+                Column(-4, -2),
+                Column(-4, 2),
+            ], closed=False),
+            Build(column_list=[
+                Column(-9, 2),
+                Column(-8, 2),
+                Column(-8, 6),
+                Column(-9, 6),
+                Column(-9, 2),
+            ], closed=False),
+            Build(column_list=[
+                Column(-4, 8),
+                Column(-2, 8),
+                Column(-2, 9),
+                Column(-1, 9),
+                Column(-1, 11),
+                Column(-4, 11),
+            ], closed=True),
+            Build(column_list=[
+                Column(-9, 8),
+                Column(-8, 8),
+                Column(-8, 11),
+                Column(-9, 11),
+            ], closed=True),
+            Build(column_list=[
+                Column(-9, 13),
+                Column(-8, 13),
+                Column(-8, 14),
+                Column(-9, 14),
+            ], closed=True),
+            Build(column_list=[
+                Column(-9, 16),
+                Column(-8, 16),
+                Column(-8, 17),
+                Column(-9, 17),
+                Column(-9, 16),
+            ], closed=False),
+            Build(column_list=[
+                Column(-9, 19),
+                Column(-8, 19),
+                Column(-8, 23),
+                Column(-9, 23),
+            ], closed=True),
+            Build(column_list=[
+                Column(-9, 25),
+                Column(-8, 25),
+                Column(-8, 27),
+                Column(-5, 27),
+                Column(-5, 29),
+            ], closed=False),
+            Build(column_list=[
+                Column(-9, 25),
+                Column(-9, 27),
+                Column(-12, 27),
+                Column(-12, 28),
+                Column(-9, 28),
+                Column(-9, 31),
+                Column(-7, 31),
+                Column(-5, 29),
+            ], closed=False),
+            Build(column_list=[
+                Column(-14, 28),
+                Column(-14, 27),
+                Column(-17, 27),
+                Column(-17, 31),
+                Column(-16, 31),
+                Column(-16, 28),
+            ], closed=True),
+            Build(column_list=[
+                Column(-17, 33),
+                Column(-16, 33),
+                Column(-16, 34),
+                Column(-17, 34),
+            ], closed=True),
+            Build(column_list=[
+                Column(-17, 36),
+                Column(-16, 36),
+                Column(-16, 37),
+                Column(-17, 37),
+            ], closed=True),
+            Build(column_list=[
+                Column(-17, 39),
+                Column(-16, 39),
+                Column(-16, 42),
+                Column(-14, 42),
+                Column(-14, 43),
+                Column(-17, 43),
+            ], closed=True),
+            Build(column_list=[
+                Column(-12, 43),
+                Column(-12, 42),
+                Column(-9, 42),
+                Column(-9, 39),
+                Column(-7, 39),
+                Column(-5, 41),
+                Column(-5, 43),
+                Column(-8, 43),
+                Column(-8, 45),
+                Column(-9, 45),
+                Column(-9, 43),
+            ], closed=True),
+            Build(column_list=[
+                Column(-8, 47),
+                Column(-8, 50),
+                Column(-9, 50),
+                Column(-9, 47),
+                Column(-8, 47),
+            ], closed=False),
+            Build(column_list=[
+                Column(5, 43),
+                Column(5, 41),
+                Column(7, 39),
+                Column(9, 39),
+                Column(9, 42),
+                Column(12, 42),
+                Column(12, 43),
+                Column(9, 43),
+                Column(9, 45),
+                Column(8, 45),
+                Column(8, 43),
+                Column(5, 43),
+            ], closed=False),
+            Build(column_list=[
+                Column(8, 47),
+                Column(9, 47),
+                Column(9, 50),
+                Column(8, 50),
+                Column(8, 47),
+            ], closed=False),
+            Build(column_list=[
+                Column(-6, 50),
+                Column(-6, 49),
+                Column(-3, 49),
+                Column(-3, 50),
+                Column(-6, 50),
+            ], closed=False),
+            Build(column_list=[
+                Column(-2, 50),
+                Column(-2, 49),
+                Column(6, 49),
+                Column(6, 50),
+                Column(-2, 50),
+            ], closed=False),
+            Build(column_list=[
+                Column(-5, 50),
+                Column(-4, 53),
+                Column(-3, 54),
+                Column(0, 55),
+                Column(3, 54),
+                Column(4, 53),
+                Column(5, 50),
+            ], closed=False),
+            Build(column_list=[
+                Column(-4, 50),
+                Column(-3, 53),
+                Column(0, 54),
+                Column(3, 53),
+                Column(4, 50),
+            ], closed=False),
+            Build(column_list=[
+                Column(14, 43),
+                Column(17, 43),
+                Column(17, 39),
+                Column(16, 39),
+                Column(16, 42),
+                Column(14, 42),
+                Column(14, 43),
+            ], closed=False),
+            Build(column_list=[
+                Column(16, 37),
+                Column(17, 37),
+                Column(17, 36),
+                Column(16, 36),
+            ], closed=True),
+            Build(column_list=[
+                Column(16, 34),
+                Column(17, 34),
+                Column(17, 33),
+                Column(16, 33),
+            ], closed=True),
+            Build(column_list=[
+                Column(16, 31),
+                Column(17, 31),
+                Column(17, 27),
+                Column(14, 27),
+                Column(14, 28),
+                Column(16, 28),
+            ], closed=True),
+            Build(column_list=[
+                Column(12, 28),
+                Column(9, 28),
+                Column(9, 31),
+                Column(7, 31),
+                Column(5, 29),
+                Column(5, 27),
+                Column(8, 27),
+                Column(8, 25),
+                Column(9, 25),
+                Column(9, 27),
+                Column(12, 27),
+                Column(12, 28),
+            ], closed=False),
+            Build(column_list=[
+                Column(8, 23),
+                Column(9, 23),
+                Column(9, 19),
+                Column(8, 19),
+                Column(8, 23),
+            ], closed=False),
+            Build(column_list=[
+                Column(8, 17),
+                Column(9, 17),
+                Column(9, 16),
+                Column(8, 16),
+                Column(8, 17),
+            ], closed=False),
+            Build(column_list=[
+                Column(8, 14),
+                Column(9, 14),
+                Column(9, 13),
+                Column(8, 13),
+                Column(8, 14),
+            ], closed=False),
+            Build(column_list=[
+                Column(8, 11),
+                Column(9, 11),
+                Column(9, 8),
+                Column(8, 8),
+                Column(8, 11),
+            ], closed=False),
+            Build(column_list=[
+                Column(8, 6),
+                Column(9, 6),
+                Column(9, 2),
+                Column(8, 2),
+                Column(8, 6),
+            ], closed=False),
+            Build(column_list=[
+                Column(8, 0),
+                Column(9, 0),
+                Column(9, -2),
+                Column(4, -2),
+                Column(4, 3),
+                Column(1, 3),
+                Column(1, 5),
+                Column(2, 5),
+                Column(2, 6),
+                Column(4, 6),
+                Column(4, 4),
+                Column(5, 4),
+                Column(5, -1),
+                Column(8, -1),
+                Column(8, 0),
+            ], closed=False),
+            Build(column_list=[
+                Column(2, 8),
+                Column(4, 8),
+                Column(4, 11),
+                Column(1, 11),
+                Column(1, 9),
+                Column(2, 9),
+                Column(2, 8),
             ], closed=False),
         ])
+
     if num_floor == 7:
         floor = Floor(build_list=[
             Build(column_list=[
@@ -373,4 +653,55 @@ def load_floor(num_floor):
             ], closed=False)
             for i in range(2,100)
         ])
+    if num_floor == 8:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(x=0, y=0, h=2, h_down=0),
+                Column(x=1, y=0, h=2, h_down=3),
+                Column(x=2, y=0, h=2, h_down=0),
+            ], closed=False),
+            Build(column_list=[
+                Column(x=3, y=0, h=5, h_down=0),
+                Column(x=4, y=0, h=5, h_down=0),
+            ], closed=False),
+            Build(column_list=[
+                Column(x=5, y=0, h=5, h_down=0),
+                Column(x=6, y=0, h=5, h_down=0),
+            ], closed=False),
+            Build(column_list=[
+                Column(x=4, y=0, h=1, h_down=4),
+                Column(x=5, y=0, h=1, h_down=4),
+            ], closed=False),
+            Build(column_list=[
+                Column(x=4, y=0, h=1, h_down=0),
+                Column(x=5, y=0, h=1, h_down=0),
+            ], closed=False),
+            Build(column_list=[
+                Column(x=7, y=0, h=2, h_down=0),
+                Column(x=8, y=0, h=2, h_down=3),
+                Column(x=9, y=0, h=2, h_down=0),
+            ], closed=False),
+            Build(column_list=[
+                Column(x=-1, y=2, h=2, h_down=0),
+                Column(x=10, y=2, h=2, h_down=3),
+            ], closed=False),
+            Build(column_list=[
+                Column(x=-1, y=5, h=2, h_down=3),
+                Column(x=10, y=5, h=2, h_down=0),
+            ], closed=False),
+
+
+
+
+
+
+        ])
+    if num_floor == 9:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(x=0, y=i, h=i**0.5, h_down=0),
+                Column(x=1, y=i, h=i**0.5, h_down=0),
+            ], closed=False) for i in range(100)
+        ])
+
     return floor

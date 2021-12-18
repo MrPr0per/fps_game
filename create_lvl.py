@@ -1,5 +1,6 @@
 import pygame
 import math
+from floor import load_floor
 
 
 def convert_crds_to_scren(x, y):
@@ -37,6 +38,7 @@ def draw_points():
 
 
 def event_processing(CENTER_W, CENTER_H, SCALE, line_scale):
+    # TODO: добавить возможность создавать столбы разной высоты
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -55,10 +57,10 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale):
                 y = (CENTER_H - point_sc[1]) / SCALE
                 # print(x)
                 # print(abs(x - round(x)))
-                if abs(x - round(x)) < 0.1:
+                if abs(x - round(x)) < 0.2:
                     x = round(x)
                 # print(x)
-                if abs(y - round(y)) < 0.1:
+                if abs(y - round(y)) < 0.2:
                     y = round(y)
 
                 # print()
@@ -66,8 +68,11 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale):
                 build_list[-1][1].append(point_crd)
 
             if event.key == pygame.K_DELETE:
-                del build_list[-1][1][-1]
-
+                if len(build_list[-1][1]) != 0:
+                    del build_list[-1][1][-1]
+                else:
+                    if len(build_list) > 1:
+                        del build_list[-1]
             if event.key == pygame.K_c:
                 build_list[-1][0] = not build_list[-1][0]
 
@@ -105,6 +110,16 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale):
     return CENTER_W, CENTER_H, SCALE, line_scale
 
 
+def convert_floor(n):
+    build_list_creator = []
+    floor = load_floor(n)
+    for build in floor.build_list:
+        build_creator = [build.closed, []]
+        for column in build.column_list:
+            build_creator[1].append((column.x, column.y))
+        build_list_creator.append(build_creator)
+    return build_list_creator
+
 if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('aaaaaaaaaaa')
@@ -119,7 +134,8 @@ if __name__ == '__main__':
     SCALE = 100
     line_scale = SCALE
 
-    build_list = [[False, []]]
+    # build_list = [[False, []]]
+    build_list = convert_floor(6)
 
     while True:
         CENTER_W, CENTER_H, SCALE, line_scale = event_processing(CENTER_W, CENTER_H, SCALE,

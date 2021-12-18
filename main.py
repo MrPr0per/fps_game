@@ -22,6 +22,7 @@ while True:
     control(player, clock, minimap, floor)
 
     drawing.clear_screen()
+    drawing.draw_horizon()
     drawing.draw_raycast()
     drawing.draw_minimap()
     drawing.draw_fps()
