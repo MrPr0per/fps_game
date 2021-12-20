@@ -1,220 +1,89 @@
+from geometric_classes import Floor, Build, Column
 import math
-from settings import *
-
-
-class Point:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.pos = (x, y)
-
-    def get_pos(self):
-        return self.x, self.y
-
-    def __str__(self):
-        return f'{self.x};{self.y}'
-
-    def __repr__(self):
-        return self.__str__()
-
-
-class Column(Point):
-    def __init__(self, x, y, h=3, h_down=0):
-        self.h = h
-        self.h_down = h_down
-        super().__init__(x, y)
-
-
-class Line_segment:
-    def __init__(self, point1, point2):
-        self.point1 = point1
-        self.point2 = point2
-
-        x1, y1 = point1.get_pos()
-        x2, y2 = point2.get_pos()
-        if x1 == x2:
-            x2 += 10 ** -6
-        self.k = (y2 - y1) / (x2 - x1)
-        self.b = y1 - self.k * x1
-        self.left_border = min(x1, x2)
-        self.right_border = max(x1, x2)
-        self.borders = (self.left_border, self.right_border)
-
-    def find_intersection(self, other):
-        k1, b1 = self.k, self.b
-        k2, b2 = other.k, other.b
-        if k1 - k2 == 0:
-            k1 = 10 ** -6
-        x = (b2 - b1) / (k1 - k2)
-        left_border1, right_border1 = self.borders
-        left_border2, right_border2 = other.borders
-        if (left_border1 <= x <= right_border1) and (left_border2 <= x <= right_border2):
-            y = k1 * x + b1
-            return Point(x=x, y=y)
-        else:
-            return None
-
-
-class Line:
-    def __init__(self, point1, point2):
-        x1, y1 = point1.get_pos()
-        x2, y2 = point2.get_pos()
-        if x1 == x2:
-            x2 += 10 ** -6
-        self.k = (y2 - y1) / (x2 - x1)
-        self.b = y1 - self.k * x1
-
-
-class Wall(Line_segment):
-    def __init__(self, column1, column2):
-        self.column1 = column1
-        self.column2 = column2
-        d = math.hypot(column1.x - column2.x, column1.y - column2.y)
-        h1 = column1.h
-        h2 = column2.h
-        self.vertical_b = h1
-        if d == 0:
-            d = ALMOST_ZERO
-        self.vertical_k = (h2 - h1) / d
-        h1_down = column1.h_down
-        h2_down = column2.h_down
-        self.vertical_b_down = h1_down
-        self.vertical_k_down = (h2_down - h1_down) / d
-        super().__init__(Point(*column1.get_pos()), Point(*column2.get_pos()))
-
-
-class Ray(Line_segment):
-    def __init__(self, point1, angle):
-        x2 = point1.x + math.cos(math.radians(angle)) * MAX_DIST_RAY
-        y2 = point1.y + math.sin(math.radians(angle)) * MAX_DIST_RAY
-        point2 = Point(x2, y2)
-        super().__init__(point1, point2)
-
-    def find_intersection(self, other):
-        k1, b1 = self.k, self.b
-        k2, b2 = other.k, other.b
-        if k1 - k2 == 0:
-            k1 = ALMOST_ZERO
-        x = (b2 - b1) / (k1 - k2)
-        if type(other) != Line:
-            left_border1, right_border1 = self.borders
-            left_border2, right_border2 = other.borders
-            if not ((left_border1 <= x <= right_border1) and (left_border2 <= x <= right_border2)):
-                return None
-        y = k1 * x + b1
-        if type(other) != Line:
-            dist_from_beginning = math.hypot(other.column1.x - x, other.column2.y - y)
-        if type(other) == Wall:
-            h = other.vertical_k * dist_from_beginning + other.vertical_b
-            h_down = other.vertical_k_down * dist_from_beginning + other.vertical_b_down
-            return Column(x=x, y=y, h=h, h_down=h_down)
-        elif type(other) == Line_segment:
-            return Point(x=x, y=y)
-        elif type(other) == Line:
-            return Point(x=x, y=y)
-
-
-class Build:
-    def __init__(self, column_list, closed=False):
-        self.column_list = column_list
-        self.closed = closed
-        wall_list = []
-        for i in range(len(column_list) - 1):
-            p1, p2 = column_list[i], column_list[i + 1]
-            wall_list.append(Wall(p1, p2))
-        if closed and len(column_list) > 2:
-            p1, p2 = column_list[-1], column_list[0]
-            wall_list.append(Wall(p1, p2))
-        self.wall_list = wall_list
-
-
-class Floor:
-    def __init__(self, build_list):
-        self.build_list = build_list
 
 
 def load_floor(num_floor):
     floor = None
-    if num_floor == 1:
-        point_list = [
-            Point(-1, 0),
-            Point(1, 0),
-        ]
-        build = Build(column_list=point_list, closed=False)
-        floor = Floor(build_list=[build])
-    if num_floor == 2:
-        floor = Floor(build_list=[
-            Build(column_list=[
-                Point(0, 0),
-                Point(1, 0),
-                Point(1, 1),
-                Point(0, 1),
-            ], closed=True),
-            Build(column_list=[
-                Point(2, 0),
-                Point(4, 0),
-                Point(3, -2),
-            ], closed=True),
-            Build(column_list=[
-                Point(5, 1),
-                Point(5, 0),
-                Point(10, 0),
-                Point(10, 5),
-                Point(5, 5),
-                Point(5, 4),
-            ], closed=False),
-        ])
-    if num_floor == 3:
-        build_list = []
-        for i in range(-20, 20):
-            i *= 4
-            build = Build(column_list=[
-                Point(i, 0),
-                Point(i + 2, 0),
-                Point(i + 2, 2),
-                Point(i, 2),
-            ], closed=True)
-            build_list.append(build)
-        floor = Floor(build_list)
-    if num_floor == 4:
-        floor = Floor(build_list=[
-            Build(column_list=[
-                Point(-1, 0),
-                Point(-1, -1),
-                Point(1, -1),
-                Point(1, 0),
-                Point(2, 0),
-                Point(4, 1),
-                Point(5, 2),
-                Point(6, 4),
-                Point(6, 6),
-                Point(8.8747526, 6),
-                Point(9, 8),
-                Point(2, 8),
-                Point(2, 6),
-                Point(4.8967929, 6),
-                Point(5, 4),
-                Point(4, 2),
-                Point(2, 1),
-                Point(1, 1),
-                Point(1, 2),
-                Point(-1, 2),
-                Point(-1, 1),
-            ], closed=False),
-            Build(column_list=[
-                Point(-1, 1),
-                Point(-2, 1),
-                Point(-2, 3),
-                Point(-1, 3),
-                Point(-1, 5),
-                Point(-3, 5),
-                Point(-3, 3),
-                Point(-2.5598684000000023, 3),
-                Point(-2.543763300000002, 1),
-                Point(-2.5598684000000023, 0),
-                Point(-1, 0),
-            ], closed=False),
-        ])
+    # if num_floor == 1:
+    #     point_list = [
+    #         Point(-1, 0),
+    #         Point(1, 0),
+    #     ]
+    #     build = Build(column_list=point_list, is_closed=False)
+    #     floor = Floor(build_list=[build])
+    # if num_floor == 2:
+    #     floor = Floor(build_list=[
+    #         Build(column_list=[
+    #             Point(0, 0),
+    #             Point(1, 0),
+    #             Point(1, 1),
+    #             Point(0, 1),
+    #         ], is_closed=True),
+    #         Build(column_list=[
+    #             Point(2, 0),
+    #             Point(4, 0),
+    #             Point(3, -2),
+    #         ], is_closed=True),
+    #         Build(column_list=[
+    #             Point(5, 1),
+    #             Point(5, 0),
+    #             Point(10, 0),
+    #             Point(10, 5),
+    #             Point(5, 5),
+    #             Point(5, 4),
+    #         ], is_closed=False),
+    #     ])
+    # if num_floor == 3:
+    #     build_list = []
+    #     for i in range(-20, 20):
+    #         i *= 4
+    #         build = Build(column_list=[
+    #             Point(i, 0),
+    #             Point(i + 2, 0),
+    #             Point(i + 2, 2),
+    #             Point(i, 2),
+    #         ], is_closed=True)
+    #         build_list.append(build)
+    #     floor = Floor(build_list)
+    # if num_floor == 4:
+    #     floor = Floor(build_list=[
+    #         Build(column_list=[
+    #             Point(-1, 0),
+    #             Point(-1, -1),
+    #             Point(1, -1),
+    #             Point(1, 0),
+    #             Point(2, 0),
+    #             Point(4, 1),
+    #             Point(5, 2),
+    #             Point(6, 4),
+    #             Point(6, 6),
+    #             Point(8.8747526, 6),
+    #             Point(9, 8),
+    #             Point(2, 8),
+    #             Point(2, 6),
+    #             Point(4.8967929, 6),
+    #             Point(5, 4),
+    #             Point(4, 2),
+    #             Point(2, 1),
+    #             Point(1, 1),
+    #             Point(1, 2),
+    #             Point(-1, 2),
+    #             Point(-1, 1),
+    #         ], is_closed=False),
+    #         Build(column_list=[
+    #             Point(-1, 1),
+    #             Point(-2, 1),
+    #             Point(-2, 3),
+    #             Point(-1, 3),
+    #             Point(-1, 5),
+    #             Point(-3, 5),
+    #             Point(-3, 3),
+    #             Point(-2.5598684000000023, 3),
+    #             Point(-2.543763300000002, 1),
+    #             Point(-2.5598684000000023, 0),
+    #             Point(-1, 0),
+    #         ], is_closed=False),
+    #     ])
     if num_floor == 5:
         floor = Floor(build_list=[
             Build(column_list=[
@@ -228,7 +97,7 @@ def load_floor(num_floor):
                 Column(4.554145636501002, 8.180376635282004),
                 Column(4.683832759506002, 10),
                 Column(6.266015660167003, 10),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(6.381598826237731, 13.152590148725595),
                 Column(4.759031355472972, 13.152590148725595),
@@ -237,14 +106,14 @@ def load_floor(num_floor):
                 Column(-5.252555166267028, 15.569179998800767),
                 Column(-4.803759908395924, 13),
                 Column(-7.116781622039304, 13),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-7, 10),
                 Column(-4.631146347676269, 10.149114192203594),
                 Column(-4.424010074812683, 7.594433493552698),
                 Column(-1, 6),
                 Column(-1, 3),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-7, 10),
                 Column(-9.119098926387304, 9.251523676461387),
@@ -253,7 +122,7 @@ def load_floor(num_floor):
                 Column(-12.157097595053235, 3.4862307484249047),
                 Column(-12.32971115577289, 1.65652700479656),
                 Column(-12.536847428636477, 0.10300495831966333),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-7.254872470615028, 13),
                 Column(-9.153621638531234, 12.876408451574147),
@@ -270,19 +139,19 @@ def load_floor(num_floor):
                 Column(-6.806077212743925, -7.215810016193716),
                 Column(-10.154780290705235, 0),
                 Column(-12.571370140780408, 0.10300495831966333),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-17, -3.5909252410809573),
                 Column(-14.193937611545167, -10.737126654874682),
                 Column(-11.777347761469994, -3.3147435439295094),
                 Column(-18, -7.595559849776958),
                 Column(-10.6726209728642, -8),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(6.312553401949869, 13.187112860869526),
                 Column(6.485166962669524, 19),
                 Column(4.862599491904765, 19.159542061769596),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(6.2435079776620075, 10),
                 Column(6.6232578112452485, -3),
@@ -293,7 +162,7 @@ def load_floor(num_floor):
                 Column(3, 23.751062776912423),
                 Column(4.862599491904765, 24),
                 Column(6.105417129086283, 23.854630913344216),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(4.862599491904765, 19.228587486057457),
                 Column(0.4782150496255241, 20.64401868395863),
@@ -306,12 +175,12 @@ def load_floor(num_floor):
                 Column(15.115844998652284, 22.818949549026286),
                 Column(6.347076114093801, 23),
                 Column(6.105417129086283, 23.854630913344216),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(8.107734433434283, 24.372471595503182),
                 Column(8.832711388456834, 27),
                 Column(9.108893085608283, 24.510562444078907),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(10, 26.443834324139043),
                 Column(10, 24.786744141230354),
@@ -319,12 +188,12 @@ def load_floor(num_floor):
                 Column(11.421914799251663, 25.166493974813594),
                 Column(11.249301238532007, 27.34142483988125),
                 Column(10.524324283509456, 27.30690212773732),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(12.595687012145317, 24.510562444078907),
                 Column(13.389709391455732, 27.410470264169113),
                 Column(14, 24.545085156222836),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(15.392026695803732, 21.817790896852284),
                 Column(11.66357378425918, 19.711905456072493),
@@ -357,7 +226,7 @@ def load_floor(num_floor):
                 Column(6.554212386957387, 5.557593477060767),
                 Column(8, 7.387297220689112),
                 Column(6.347076114093801, 7.7670470542723535),
-            ], closed=False),
+            ], is_closed=False),
         ])
     if num_floor == 6:
         floor = Floor(build_list=[
@@ -371,7 +240,7 @@ def load_floor(num_floor):
                 Column(-5, 4),
                 Column(-5, 3),
                 Column(-1, 3),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-4, 2),
                 Column(-5, 2),
@@ -382,14 +251,14 @@ def load_floor(num_floor):
                 Column(-9, -2),
                 Column(-4, -2),
                 Column(-4, 2),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-9, 2),
                 Column(-8, 2),
                 Column(-8, 6),
                 Column(-9, 6),
                 Column(-9, 2),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-4, 8),
                 Column(-2, 8),
@@ -397,39 +266,39 @@ def load_floor(num_floor):
                 Column(-1, 9),
                 Column(-1, 11),
                 Column(-4, 11),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-9, 8),
                 Column(-8, 8),
                 Column(-8, 11),
                 Column(-9, 11),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-9, 13),
                 Column(-8, 13),
                 Column(-8, 14),
                 Column(-9, 14),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-9, 16),
                 Column(-8, 16),
                 Column(-8, 17),
                 Column(-9, 17),
                 Column(-9, 16),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-9, 19),
                 Column(-8, 19),
                 Column(-8, 23),
                 Column(-9, 23),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-9, 25),
                 Column(-8, 25),
                 Column(-8, 27),
                 Column(-5, 27),
                 Column(-5, 29),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-9, 25),
                 Column(-9, 27),
@@ -439,7 +308,7 @@ def load_floor(num_floor):
                 Column(-9, 31),
                 Column(-7, 31),
                 Column(-5, 29),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-14, 28),
                 Column(-14, 27),
@@ -447,19 +316,19 @@ def load_floor(num_floor):
                 Column(-17, 31),
                 Column(-16, 31),
                 Column(-16, 28),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-17, 33),
                 Column(-16, 33),
                 Column(-16, 34),
                 Column(-17, 34),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-17, 36),
                 Column(-16, 36),
                 Column(-16, 37),
                 Column(-17, 37),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-17, 39),
                 Column(-16, 39),
@@ -467,7 +336,7 @@ def load_floor(num_floor):
                 Column(-14, 42),
                 Column(-14, 43),
                 Column(-17, 43),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-12, 43),
                 Column(-12, 42),
@@ -480,14 +349,14 @@ def load_floor(num_floor):
                 Column(-8, 45),
                 Column(-9, 45),
                 Column(-9, 43),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(-8, 47),
                 Column(-8, 50),
                 Column(-9, 50),
                 Column(-9, 47),
                 Column(-8, 47),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(5, 43),
                 Column(5, 41),
@@ -501,28 +370,28 @@ def load_floor(num_floor):
                 Column(8, 45),
                 Column(8, 43),
                 Column(5, 43),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(8, 47),
                 Column(9, 47),
                 Column(9, 50),
                 Column(8, 50),
                 Column(8, 47),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-6, 50),
                 Column(-6, 49),
                 Column(-3, 49),
                 Column(-3, 50),
                 Column(-6, 50),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-2, 50),
                 Column(-2, 49),
                 Column(6, 49),
                 Column(6, 50),
                 Column(-2, 50),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-5, 50),
                 Column(-4, 53),
@@ -531,14 +400,14 @@ def load_floor(num_floor):
                 Column(3, 54),
                 Column(4, 53),
                 Column(5, 50),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(-4, 50),
                 Column(-3, 53),
                 Column(0, 54),
                 Column(3, 53),
                 Column(4, 50),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(14, 43),
                 Column(17, 43),
@@ -547,19 +416,19 @@ def load_floor(num_floor):
                 Column(16, 42),
                 Column(14, 42),
                 Column(14, 43),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(16, 37),
                 Column(17, 37),
                 Column(17, 36),
                 Column(16, 36),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(16, 34),
                 Column(17, 34),
                 Column(17, 33),
                 Column(16, 33),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(16, 31),
                 Column(17, 31),
@@ -567,7 +436,7 @@ def load_floor(num_floor):
                 Column(14, 27),
                 Column(14, 28),
                 Column(16, 28),
-            ], closed=True),
+            ], is_closed=True),
             Build(column_list=[
                 Column(12, 28),
                 Column(9, 28),
@@ -581,42 +450,42 @@ def load_floor(num_floor):
                 Column(9, 27),
                 Column(12, 27),
                 Column(12, 28),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(8, 23),
                 Column(9, 23),
                 Column(9, 19),
                 Column(8, 19),
                 Column(8, 23),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(8, 17),
                 Column(9, 17),
                 Column(9, 16),
                 Column(8, 16),
                 Column(8, 17),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(8, 14),
                 Column(9, 14),
                 Column(9, 13),
                 Column(8, 13),
                 Column(8, 14),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(8, 11),
                 Column(9, 11),
                 Column(9, 8),
                 Column(8, 8),
                 Column(8, 11),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(8, 6),
                 Column(9, 6),
                 Column(9, 2),
                 Column(8, 2),
                 Column(8, 6),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(8, 0),
                 Column(9, 0),
@@ -633,7 +502,7 @@ def load_floor(num_floor):
                 Column(5, -1),
                 Column(8, -1),
                 Column(8, 0),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(2, 8),
                 Column(4, 8),
@@ -642,16 +511,15 @@ def load_floor(num_floor):
                 Column(1, 9),
                 Column(2, 9),
                 Column(2, 8),
-            ], closed=False),
+            ], is_closed=False),
         ])
-
     if num_floor == 7:
         floor = Floor(build_list=[
             Build(column_list=[
                 Column(i, 0, i, 0),
                 Column(i + 1, 0, i, 0),
-            ], closed=False)
-            for i in range(2,100)
+            ], is_closed=False)
+            for i in range(2, 100)
         ])
     if num_floor == 8:
         floor = Floor(build_list=[
@@ -659,49 +527,115 @@ def load_floor(num_floor):
                 Column(x=0, y=0, h=2, h_down=0),
                 Column(x=1, y=0, h=2, h_down=3),
                 Column(x=2, y=0, h=2, h_down=0),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(x=3, y=0, h=5, h_down=0),
                 Column(x=4, y=0, h=5, h_down=0),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(x=5, y=0, h=5, h_down=0),
                 Column(x=6, y=0, h=5, h_down=0),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(x=4, y=0, h=1, h_down=4),
                 Column(x=5, y=0, h=1, h_down=4),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(x=4, y=0, h=1, h_down=0),
                 Column(x=5, y=0, h=1, h_down=0),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(x=7, y=0, h=2, h_down=0),
                 Column(x=8, y=0, h=2, h_down=3),
                 Column(x=9, y=0, h=2, h_down=0),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(x=-1, y=2, h=2, h_down=0),
                 Column(x=10, y=2, h=2, h_down=3),
-            ], closed=False),
+            ], is_closed=False),
             Build(column_list=[
                 Column(x=-1, y=5, h=2, h_down=3),
                 Column(x=10, y=5, h=2, h_down=0),
-            ], closed=False),
-
-
-
-
-
-
+            ], is_closed=False),
         ])
     if num_floor == 9:
+        floor = Floor(build_list=[])
+
+        for i in range(100):
+            for j in range(i - 2, i):
+                b = Build(column_list=[
+                    Column(1, i * 2, 1, j * 2),
+                    Column(2, i * 2, 1, j * 2),
+                    # Column(2, i * 2 + 1, 1, j * 2),
+                    # Column(1, i * 2 + 1, 1, j * 2),
+                ], is_closed=False
+                )
+                floor.build_list.append(b)
+
+        b = Build(column_list=[
+            Column(1, 1, 100, 0),
+            Column(2, 1, 100, 0),
+        ], is_closed=False)
+        floor.build_list.append(b)
+        b = Build(column_list=[
+            Column(1, 100, 100, 0),
+            Column(2, 100, 100, 0),
+        ], is_closed=False)
+        floor.build_list.append(b)
+    if num_floor == 10:
+        n = 20
         floor = Floor(build_list=[
             Build(column_list=[
-                Column(x=0, y=i, h=i**0.5, h_down=0),
-                Column(x=1, y=i, h=i**0.5, h_down=0),
-            ], closed=False) for i in range(100)
+                Column(-3, i * 4 + 0, 2, 5),
+                Column(-3, i * 4 + 1, 1, 6),
+                Column(-3, i * 4 + 2, 2, 5),
+                Column(-3, i * 4 + 2, 7, 0),
+                Column(-3, i * 4 + 4, 7, 0),
+            ], is_closed=False) for i in range(-n, n)
         ])
+        for i in range(-n, n):
+            floor.build_list.append(
+                Build(column_list=[
+                    Column(3, i * 4 + 0, 2, 5),
+                    Column(3, i * 4 + 1, 1, 6),
+                    Column(3, i * 4 + 2, 2, 5),
+                    Column(3, i * 4 + 2, 7, 0),
+                    Column(3, i * 4 + 4, 7, 0),
+                ], is_closed=False)
+            )
+        floor.build_list.append(
+            Build(column_list=[
+                Column(3, -n * 4, 1, 0),
+                Column(3, n * 4, 1, 0),
+            ], is_closed=False)
+        )
+        floor.build_list.append(
+            Build(column_list=[
+                Column(-3, -n * 4, 1, 0),
+                Column(-3, n * 4, 1, 0),
+            ], is_closed=False)
+        )
+
+    if num_floor == 11:
+        # floor = Floor(build_list=[
+        #     Build(column_list=[
+        #         Column(0, i, (i**2)**0.5, 0) for i in range(-7, 7 + 1)
+        #     ], is_closed=False),
+        #     Build(column_list=[
+        #         Column(i, 0, (i**2)**0.5, 0) for i in range(-7, 7 + 1)
+        #     ], is_closed=False)
+        # ])
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(0, 0, 0, 0),
+                Column(math.cos(math.radians(angle)) * 6, math.sin(math.radians(angle)) * 6, 6, 0)
+            ], is_closed=False) for angle in range(0, 90, 90 // 12)
+        ])
+        # floor = Floor(build_list=[
+        #     Build(column_list=[
+        #         Column(0, 0, 0, 0),
+        #         Column(0, 3, 3, 0),
+        #     ], is_closed=False)
+        # ])
 
     return floor

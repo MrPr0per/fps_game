@@ -1,7 +1,7 @@
 import pygame
 import debug
 from settings import *
-from floor import Ray, Line_segment, Point, Line, Column
+from geometric_classes import Ray, Line_segment, Point, Line, Column
 import math
 
 
@@ -246,7 +246,7 @@ class Drawing:
                 map(lambda a: convert_crds_to_scren(*a.pos, self.player, self.minimap),
                     build.column_list))
             # points = list(map(lambda a: (a.x, a.y), build.point_list))
-            pygame.draw.lines(self.minimap.sc, (200, 200, 200), build.closed, points)
+            pygame.draw.lines(self.minimap.sc, (200, 200, 200), build.is_closed, points)
 
         pygame.draw.rect(self.minimap.sc, (255, 255, 255),
                          (0, 0, self.minimap.WIDTH, self.minimap.HEIGHT), 2)
@@ -290,7 +290,7 @@ def find_dist(point1, point2):
 
 def find_color(dist):
     color = pygame.Color(0)
-    smooth = 10
+    smooth = 5
     brightness = 100 * smooth / (dist + smooth)
     try:
         color.hsva = (0, 0, brightness)
@@ -355,7 +355,8 @@ def find_screen_h_and_h_down(dist, intersection, player, sc):
 
 def draw_column(dist, intersection, player, cur_angle, sc, ray_number):
     # убираем эффект рыбьего глаза
-    dist *= math.cos(math.radians(player.angle_w - cur_angle))
+    if not FISH_EYE:
+        dist *= math.cos(math.radians(player.angle_w - cur_angle))
 
     # находим экранную высоту стены и ее экранное расстояние над землей
     screen_h, screen_h_down = find_screen_h_and_h_down(dist, intersection, player, sc)

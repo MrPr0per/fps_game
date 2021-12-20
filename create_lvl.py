@@ -1,6 +1,8 @@
 import pygame
 import math
-from floor import load_floor
+from geometric_classes import Floor, Build, Column
+from floors import load_floor
+import debug
 
 
 def convert_crds_to_scren(x, y):
@@ -26,18 +28,45 @@ def draw_grid(line_scale):
 
 
 def draw_points():
-    for b in build_list:
-        # print(b)
-        for p in b[1]:
-            # print(p)
-            pygame.draw.circle(sc, (200, 200, 200), convert_crds_to_scren(p[0], p[1]), 5)
-        if len(b[1]) >= 2:
-            # print(b)
-            pygame.draw.lines(sc, (200, 200, 200), b[0],
-                              list(map(lambda x: convert_crds_to_scren(x[0], x[1]), b[1])))
+    for build in FLOOR.build_list:
+        for column in build.column_list:
+            pygame.draw.circle(sc, (200, 200, 200), convert_crds_to_scren(column.x, column.y), 5)
+        if len(build.column_list) >= 2:
+            pygame.draw.lines(sc, (200, 200, 200), build.is_closed,
+                              list(map(lambda a: convert_crds_to_scren(a.x, a.y),
+                                       build.column_list)))
 
 
-def event_processing(CENTER_W, CENTER_H, SCALE, line_scale):
+def draw_params():
+    render = font.render(f'h       {H}', False, (100, 200, 0))
+    sc.blit(render, (0, 10))
+    render = font.render(f'h_down  {H_DOWN}', False, (100, 200, 0))
+    sc.blit(render, (0, 30))
+
+    text_list = [
+        'space - поставить точку',
+        'tab - создать новую группу точек',
+        'с - изменить замкнутость группы',
+        'del - удалить последнюю точку',
+        'enter (numpad) - вывести уровень',
+        '1 - увеличить h',
+        '2 - уменьшить h',
+        '9 - увеличить h_down и уменьшить h',
+        '0 - уменьшить h_down и увеличить h',
+        'm - отзеркалить все точки от OY',
+    ]
+    for i in range(len(text_list)):
+        render = font.render(text_list[i], False, (100, 200, 0))
+        sc.blit(render, (0, 60 + 20 * i))
+
+    scale = 70
+    margin = 15
+    pygame.draw.line(sc, (100, 100, 0), (WIDTH - margin * 2, HEIGHT - margin), (WIDTH - margin * 2 , HEIGHT - margin - 1.8 * scale), 3)
+    pygame.draw.line(sc, (100, 50, 100), (WIDTH - margin, HEIGHT - margin), (WIDTH - margin, HEIGHT - margin - H_DOWN * scale), 3)
+    pygame.draw.line(sc, (200, 200, 100), (WIDTH - margin, HEIGHT - margin - H_DOWN * scale), (WIDTH - margin, HEIGHT - margin - (H_DOWN + H) * scale), 3)
+
+
+def event_processing(CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN):
     # TODO: добавить возможность создавать столбы разной высоты
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -49,41 +78,56 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale):
                 quit()
 
             if event.key == pygame.K_TAB:
-                build_list.append([False, []])
+                FLOOR.build_list.append(Build([], False))
 
             if event.key == pygame.K_SPACE:
                 point_sc = pygame.mouse.get_pos()
                 x = -1 * (CENTER_W - point_sc[0]) / SCALE
                 y = (CENTER_H - point_sc[1]) / SCALE
-                # print(x)
-                # print(abs(x - round(x)))
                 if abs(x - round(x)) < 0.2:
                     x = round(x)
-                # print(x)
                 if abs(y - round(y)) < 0.2:
                     y = round(y)
 
-                # print()
-                point_crd = (x, y)
-                build_list[-1][1].append(point_crd)
+                FLOOR.build_list[-1].column_list.append(Column(x, y, H, H_DOWN))
 
             if event.key == pygame.K_DELETE:
-                if len(build_list[-1][1]) != 0:
-                    del build_list[-1][1][-1]
+                if len(FLOOR.build_list[-1].column_list) != 0:
+                    del FLOOR.build_list[-1].column_list[-1]
                 else:
-                    if len(build_list) > 1:
-                        del build_list[-1]
+                    if len(FLOOR.build_list) > 1:
+                        del FLOOR.build_list[-1]
+
             if event.key == pygame.K_c:
-                build_list[-1][0] = not build_list[-1][0]
+                FLOOR.build_list[-1].is_closed = not FLOOR.build_list[-1].is_closed
 
             if event.key == pygame.K_KP_ENTER:
+                print()
                 print('floor = Floor(build_list=[')
-                for build in build_list:
+                for build in FLOOR.build_list:
                     print('\tBuild(column_list=[')
-                    for point in build[1]:
-                        print(f'\t\tColumn{point},')
-                    print(f'\t], closed={build[0]}),')
+                    for column in build.column_list:
+                        print(f'\t\tColumn{column},')
+                    print(f'\t], is_closed={build.is_closed}),')
                 print('])')
+
+            if event.key == pygame.K_m:
+                build_list = FLOOR.build_list.copy()
+                for build in build_list:
+                    FLOOR.build_list.append(Build([], build.is_closed))
+                    for c in build.column_list:
+                        FLOOR.build_list[-1].column_list.append(Column(-c.x, c.y, c.h, c.h_down))
+
+            if event.key == pygame.K_1:
+                H += 1
+            if event.key == pygame.K_2:
+                H -= 1
+            if event.key == pygame.K_9:
+                H_DOWN += 1
+                H -= 1
+            if event.key == pygame.K_0:
+                H_DOWN -= 1
+                H += 1
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             no_move_point_sc = pygame.mouse.get_pos()
@@ -107,43 +151,39 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale):
         CENTER_W += delta_x
         CENTER_H += delta_y
 
-    return CENTER_W, CENTER_H, SCALE, line_scale
+    return CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN
 
-
-def convert_floor(n):
-    build_list_creator = []
-    floor = load_floor(n)
-    for build in floor.build_list:
-        build_creator = [build.closed, []]
-        for column in build.column_list:
-            build_creator[1].append((column.x, column.y))
-        build_list_creator.append(build_creator)
-    return build_list_creator
 
 if __name__ == '__main__':
     pygame.init()
-    pygame.display.set_caption('aaaaaaaaaaa')
+    pygame.display.set_caption('редактор')
     WIDTH, HEIGHT = 1280, 720
     CENTER_W = WIDTH / 2
     CENTER_H = HEIGHT / 2
     sc = pygame.display.set_mode((WIDTH, HEIGHT))
-
     fps = 120
     clock = pygame.time.Clock()
+    font = pygame.font.SysFont('Lucida Console', 15)
 
     SCALE = 100
     line_scale = SCALE
 
+    H = 3
+    H_DOWN = 0
+
     # build_list = [[False, []]]
-    build_list = convert_floor(6)
+    FLOOR = Floor(build_list=[Build(column_list=[], is_closed=False)])
+    # FLOOR = load_floor(6)
 
     while True:
-        CENTER_W, CENTER_H, SCALE, line_scale = event_processing(CENTER_W, CENTER_H, SCALE,
-                                                                 line_scale)
+        CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN = event_processing(CENTER_W, CENTER_H,
+                                                                            SCALE,
+                                                                            line_scale, H, H_DOWN)
 
         sc.fill(pygame.Color('black'))
         draw_grid(line_scale)
         draw_points()
+        draw_params()
 
         clock.tick(fps)
         pygame.display.flip()

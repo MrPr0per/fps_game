@@ -6,14 +6,14 @@ from player import Player
 from drawing import Drawing
 from control import control
 from minimap import Minimap
-import floor
+import floors
 
 
 pygame.init()
 clock = pygame.time.Clock()
 
 player = Player()
-floor = floor.load_floor(5)
+floor = floors.load_floor(10)
 minimap = Minimap()
 drawing = Drawing(clock, player, floor, minimap)
 
