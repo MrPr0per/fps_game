@@ -617,25 +617,81 @@ def load_floor(num_floor):
         )
 
     if num_floor == 11:
-        # floor = Floor(build_list=[
-        #     Build(column_list=[
-        #         Column(0, i, (i**2)**0.5, 0) for i in range(-7, 7 + 1)
-        #     ], is_closed=False),
-        #     Build(column_list=[
-        #         Column(i, 0, (i**2)**0.5, 0) for i in range(-7, 7 + 1)
-        #     ], is_closed=False)
-        # ])
         floor = Floor(build_list=[
             Build(column_list=[
-                Column(0, 0, 0, 0),
-                Column(math.cos(math.radians(angle)) * 6, math.sin(math.radians(angle)) * 6, 6, 0)
-            ], is_closed=False) for angle in range(0, 90, 90 // 12)
+                Column(-5, 0.5196453329084997, 3, 0),
+                Column(-4.674522239345714, 2.345640024818901, 3, 0),
+                Column(-2.477622375641013, 4.228697050851503, 3, 0),
+                Column(-1, 4.685195723829103, 3, 0),
+                Column(0, 4.599602222645805, 3, 0),
+                Column(4.4839823872673925, 10.70527197372121, 3, 0),
+                Column(1.5912358901095212, 15.47859328537737, 3, 0),
+                Column(3.679859974817349, 24, 3, 0),
+                Column(6, 16, 3, 0),
+                Column(7.667233227441384, 14, 3, 0),
+                Column(9, 15.592518235452342, 3, 0),
+                Column(9, 18.630516904118274, 3, 0),
+                Column(12, 20.263441188526212, 3, 0),
+                Column(15, 17.75709228687682, 3, 0),
+                Column(14.464755248581406, 15, 3, 0),
+                Column(11.38878159655715, 14.37731876798597, 3, 0),
+                Column(9.528007411999267, 12.326669666636466, 3, 0),
+                Column(12.679931030740171, 11, 3, 0),
+                Column(23, 13.54186913410284, 3, 0),
+                Column(13, 7.389921830054328, 3, 0),
+                Column(7.667233227441384, 9.32664598132886, 3, 0),
+                Column(3, 3.2886236273553204, 3, 0),
+                Column(4.439359641983834, 1, 3, 0),
+                Column(4, -1.4582492924351975, 3, 0),
+                Column(3, -2.7873737099765425, 3, 0),
+                Column(5, -5.369672578342584, 3, 0),
+                Column(5, -2, 3, 0),
+                Column(9, -2, 3, 0),
+                Column(9, -13, 3, 0),
+                Column(8, -13, 3, 0),
+                Column(8, -19, 3, 0),
+                Column(10, -19, 3, 0),
+                Column(5, -28, 3, 0),
+                Column(5, -10, 3, 0),
+                Column(6, -9, 3, 0),
+                Column(2, -9, 3, 0),
+                Column(4, -11, 3, 0),
+                Column(4, -16, 3, 0),
+                Column(0, -16, 3, 0),
+            ], is_closed=False),
+            Build(column_list=[
+                Column(4, -16, 3, 0),
+                Column(4, -23, 3, 0),
+                Column(1, -23, 3, 0),
+                Column(1, -18, 3, 0),
+                Column(-2, -18, 3, 0),
+                Column(-2, -14, 3, 0),
+                Column(2, -14, 3, 0),
+            ], is_closed=False),
+            Build(column_list=[
+                Column(0, -13.786354778988468, 3, 0),
+                Column(0, -7, 3, 0),
+                Column(3.7226738874766094, -7, 3, 0),
+                Column(1, -3.649231122179627, 3, 0),
+                Column(-1, -4.653528202730349, 3, 0),
+                Column(-4.248934189394737, -4, 3, 0),
+                Column(-5, -2, 3, 0),
+                Column(-12, -2, 3, 0),
+                Column(-12, -3, 3, 0),
+                Column(-27, -3, 3, 0),
+                Column(-27, -2, 3, 0),
+                Column(-36, -2, 3, 0),
+                Column(-40.453591440061786, -6.425505918341967, 3, 0),
+                Column(-47.38666503590909, -3.4582645439875646, 3, 0),
+                Column(-47.38666503590909, 3, 3, 0),
+                Column(-39.569125261167684, 5.329334910831243, 3, 0),
+                Column(-36, 2, 3, 0),
+                Column(-27, 2, 3, 0),
+                Column(-27, 1, 3, 0),
+                Column(-12, 1, 3, 0),
+                Column(-12, 2, 3, 0),
+                Column(-5, 0.5931611786886387, 3, 0),
+            ], is_closed=False),
         ])
-        # floor = Floor(build_list=[
-        #     Build(column_list=[
-        #         Column(0, 0, 0, 0),
-        #         Column(0, 3, 3, 0),
-        #     ], is_closed=False)
-        # ])
 
     return floor

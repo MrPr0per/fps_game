@@ -1,10 +1,11 @@
 import math
+import pygame
 from settings import *
 from geometric_classes import Column, Line_segment, Point
 
 
 class Player(Column):
-    def __init__(self, x=0, y=-1, angle_w=90, h=1.8, h_down=0, angle_h=0, speed=5):
+    def __init__(self, x=0, y=0, angle_w=90, h=1.8, h_down=0, angle_h=0, speed=5):
         super().__init__(x=x, y=y, h=h, h_down=h_down)
         self.angle_w = angle_w % 360
         self.fov_w = FOW_W
@@ -17,6 +18,9 @@ class Player(Column):
         self.top_angle = angle_h + FOW_H / 2
 
         self.speed = speed
+        self.jump_speed = 5
+        self.in_process_of_jumping = False
+        self.jump_start_time = None
 
     def turn(self, diff_w, diff_h):
         self.angle_w = (self.angle_w + diff_w) % 360
@@ -74,3 +78,15 @@ class Player(Column):
                 self.h_down += dist
             if direction == DOWN:
                 self.h_down -= dist
+
+    def jump(self):
+        self.jump_start_time = pygame.time.get_ticks() / 1000
+        self.in_process_of_jumping = True
+
+    def update(self):
+        if self.in_process_of_jumping:
+            t = pygame.time.get_ticks() / 1000 - self.jump_start_time
+            h_down = self.jump_speed * t - (g_const * t ** 2) / 2
+            if h_down < 0:
+                h_down = 0
+            self.h_down = h_down

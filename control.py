@@ -23,8 +23,11 @@ def control(player, clock, minimap, floor):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 exit()
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_BACKQUOTE:  # бахропкъюуркалорукаие - это кнопка ё
                 debug.DEBUG = True
+            if event.key == pygame.K_SPACE:
+                player.jump()
+
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w] or keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_s]:
         delta_x_all, delta_y_all = 0, 0
@@ -47,7 +50,11 @@ def control(player, clock, minimap, floor):
         minimap.CENTER_W -= delta_x_all * minimap.SCALE
         minimap.CENTER_H += delta_y_all * minimap.SCALE
 
-    if keys[pygame.K_SPACE]:
-        player.fly(UP, clock.get_fps())
-    if keys[pygame.K_LSHIFT]:
-        player.fly(DOWN, clock.get_fps())
+    if FLY_MOD:
+        if keys[pygame.K_SPACE]:
+            player.fly(UP, clock.get_fps())
+        if keys[pygame.K_LSHIFT]:
+            player.fly(DOWN, clock.get_fps())
+    # else:
+    #     if keys[pygame.K_SPACE]:
+    #         player.jump()

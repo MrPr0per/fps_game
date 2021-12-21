@@ -13,7 +13,7 @@ pygame.init()
 clock = pygame.time.Clock()
 
 player = Player()
-floor = floors.load_floor(10)
+floor = floors.load_floor(11)
 minimap = Minimap()
 drawing = Drawing(clock, player, floor, minimap)
 
@@ -26,6 +26,8 @@ while True:
     drawing.draw_raycast()
     drawing.draw_minimap()
     drawing.draw_fps()
+
+    player.update()
 
     pygame.display.update()
     clock.tick(FPS)
