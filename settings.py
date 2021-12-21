@@ -14,7 +14,7 @@ COLLISION = True
 FLY_MOD = False
 
 # raycast
-FOW_W = 120
+FOW_W = 170
 FOW_H = int(FOW_W * HEIGHT / WIDTH)
 SCALE_N_RAYS = 1/7
 NUM_RAYS = int(WIDTH * SCALE_N_RAYS)
