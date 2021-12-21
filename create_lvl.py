@@ -54,6 +54,8 @@ def draw_params():
         '9 - увеличить h_down и уменьшить h',
         '0 - уменьшить h_down и увеличить h',
         'm - отзеркалить все точки от OY',
+        's - скалировать все точки от центра',
+        'h - настроить высоты',
     ]
     for i in range(len(text_list)):
         render = font.render(text_list[i], False, (100, 200, 0))
@@ -61,9 +63,18 @@ def draw_params():
 
     scale = 70
     margin = 15
-    pygame.draw.line(sc, (100, 100, 0), (WIDTH - margin * 2, HEIGHT - margin), (WIDTH - margin * 2 , HEIGHT - margin - 1.8 * scale), 3)
-    pygame.draw.line(sc, (100, 50, 100), (WIDTH - margin, HEIGHT - margin), (WIDTH - margin, HEIGHT - margin - H_DOWN * scale), 3)
-    pygame.draw.line(sc, (200, 200, 100), (WIDTH - margin, HEIGHT - margin - H_DOWN * scale), (WIDTH - margin, HEIGHT - margin - (H_DOWN + H) * scale), 3)
+    pygame.draw.line(sc, (100, 100, 0), (WIDTH - margin * 2, HEIGHT - margin),
+                     (WIDTH - margin * 2, HEIGHT - margin - 1.8 * scale), 3)
+    if len(FLOOR.build_list[-1].column_list) != 0:
+        p_h = FLOOR.build_list[-1].column_list[-1].h
+        p_h_down = FLOOR.build_list[-1].column_list[-1].h_down
+        pygame.draw.line(sc, (200, 200, 200),
+                         (WIDTH - margin * 3, HEIGHT - margin - p_h_down * scale),
+                         (WIDTH - margin * 3, HEIGHT - margin - (p_h_down + p_h) * scale), 3)
+    pygame.draw.line(sc, (100, 50, 100), (WIDTH - margin, HEIGHT - margin),
+                     (WIDTH - margin, HEIGHT - margin - H_DOWN * scale), 3)
+    pygame.draw.line(sc, (200, 200, 100), (WIDTH - margin, HEIGHT - margin - H_DOWN * scale),
+                     (WIDTH - margin, HEIGHT - margin - (H_DOWN + H) * scale), 3)
 
 
 def event_processing(CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN):
@@ -117,6 +128,42 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN):
                     FLOOR.build_list.append(Build([], build.is_closed))
                     for c in build.column_list:
                         FLOOR.build_list[-1].column_list.append(Column(-c.x, c.y, c.h, c.h_down))
+
+            if event.key == pygame.K_s:
+                k = eval(input('введите выражение, равное коэффициенту скалирования: '))
+                for b in range(len(FLOOR.build_list)):
+                    for c in range(len(FLOOR.build_list[b].column_list)):
+                        FLOOR.build_list[b].column_list[c].x *= k
+                        FLOOR.build_list[b].column_list[c].y *= k
+
+            if event.key == pygame.K_h:
+                print('введите, что вы хотите сделать с высотами\n'
+                      '(первый знак - оператор, далее выражение)\n'
+                      'пример: *3/2+1')
+                inp = input()
+                oper = inp[0]
+                k = eval(inp[1:])
+                f = None
+                if oper == '*':
+                    f = lambda x: x * k
+                elif oper == '/':
+                    f = lambda x: x / k
+                elif oper == '+':
+                    f = lambda x: x + k
+                elif oper == '-':
+                    f = lambda x: x - k
+
+                if f:
+                    for b in range(len(FLOOR.build_list)):
+                        for c in range(len(FLOOR.build_list[b].column_list)):
+                            if oper == '*' or oper == '/':
+                                FLOOR.build_list[b].column_list[c].h = f(
+                                    FLOOR.build_list[b].column_list[c].h)
+                                FLOOR.build_list[b].column_list[c].h_down = f(
+                                    FLOOR.build_list[b].column_list[c].h_down)
+                            if oper == '+' or oper == '-':
+                                FLOOR.build_list[b].column_list[c].h_down = f(
+                                    FLOOR.build_list[b].column_list[c].h_down)
 
             if event.key == pygame.K_1:
                 H += 1
@@ -172,8 +219,8 @@ if __name__ == '__main__':
     H_DOWN = 0
 
     # build_list = [[False, []]]
-    FLOOR = Floor(build_list=[Build(column_list=[], is_closed=False)])
-    # FLOOR = load_floor(6)
+    # FLOOR = Floor(build_list=[Build(column_list=[], is_closed=False)])
+    FLOOR = load_floor(11)
 
     while True:
         CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN = event_processing(CENTER_W, CENTER_H,
