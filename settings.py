@@ -45,8 +45,8 @@ UP = 'up'
 DOWN = 'down'
 
 # phy6
-# g_const = 9.8
-g_const = 1.6
+g_const = 9.8
+# g_const = 1.6
 # g_const = 1
 
 # moving
