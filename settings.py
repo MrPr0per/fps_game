@@ -13,13 +13,17 @@ VERTICAL_MOVE_HEAD = True
 COLLISION = True
 FLY_MOD = False
 
+# math
+ALMOST_ZERO = 10 ** -5
+ALMOST_INFINITY = 10 ** 5
+
 # raycast
-FOW_W = 170
+FOW_W = 90
 FOW_H = int(FOW_W * HEIGHT / WIDTH)
 SCALE_N_RAYS = 1/7
 NUM_RAYS = int(WIDTH * SCALE_N_RAYS)
 DELTA_ANGLE = FOW_W / NUM_RAYS
-MAX_DIST_RAY = 100
+MAX_DIST_RAY = ALMOST_INFINITY
 DIST_TO_SCREEN = NUM_RAYS / (2 * math.tan(math.radians(FOW_W / 2)))
 DRAW_ALL_WALS = True
 FISH_EYE = False
@@ -40,9 +44,11 @@ BACK = 'back'
 UP = 'up'
 DOWN = 'down'
 
-# math
-ALMOST_ZERO = 10 ** -5
-ALMOST_INFINITY = 10 ** 5
-
 # phy6
-g_const = 9.8
+# g_const = 9.8
+g_const = 1.6
+# g_const = 1
+
+# moving
+SPEED = 5
+JUMP_SPEED = 4

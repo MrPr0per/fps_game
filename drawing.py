@@ -15,7 +15,8 @@ class Drawing:
         self.minimap = minimap
         self.sc = sc
         self.clock = clock
-        self.font = pygame.font.SysFont('Arial', 36, bold=True)
+        self.font_fps = pygame.font.SysFont('Arial', 36, bold=True)
+        self.font_info = pygame.font.SysFont('Lucida Console', 15)
 
     def clear_screen(self):
         self.sc.fill((0, 0, 0))
@@ -122,6 +123,11 @@ class Drawing:
         #
         # pygame.draw.rect(self.sc, color,
         #                  (0, HEIGHT - screen_h_down, WIDTH, screen_h_down))
+        step = 10
+        for i in range(0, HEIGHT, step):
+            color = (i / HEIGHT * 255, 50, (HEIGHT - i) / HEIGHT * 255)
+            # print(color)
+            self.sc.fill(color, (0, i, WIDTH, step))
 
         last_h = 0
         for i in range(MAX_DIST_HORIZON * SMOOTHING_HORIZON):
@@ -140,13 +146,7 @@ class Drawing:
 
             angular_size_h_down = angle_point - angle_border_point
             screen_h_down = HEIGHT * angular_size_h_down / self.player.fov_h
-            color = pygame.Color(0)
-            smooth = 5
-            brightness = 50 * smooth / (dist + smooth)
-            try:
-                color.hsva = (100, 70, brightness)
-            except Exception:
-                print(brightness)
+            color = find_color(dist, 228, 50)
 
             pygame.draw.rect(self.sc, color,
                              (0, HEIGHT - screen_h_down, WIDTH, screen_h_down - last_h + 1))
@@ -263,8 +263,16 @@ class Drawing:
         elif fps >= 60:
             color = pygame.Color('green')
 
-        render = self.font.render(str(fps), False, color)
+        render = self.font_fps.render(str(fps), False, color)
         self.sc.blit(render, FPS_POS)
+
+    def draw_info(self):
+        text_list = [
+            f'add_speed = {self.player.add_speed}',
+        ]
+        for i in range(len(text_list)):
+            render = self.font_info.render(text_list[i], False, (0, 200, 200))
+            self.sc.blit(render, (0, 20 + 20 * i))
 
 
 def convert_crds_to_scren(x, y, player, minimap):
@@ -288,12 +296,12 @@ def find_dist(point1, point2):
     return math.hypot(point1.x - point2.x, point1.y - point2.y)
 
 
-def find_color(dist):
+def find_color(dist, hue=0, value=0):
     color = pygame.Color(0)
-    smooth = 5
-    brightness = 100 * smooth / (dist + smooth)
+    smooth = 10
+    brightness = 100 - 100 * smooth / (dist + smooth)
     try:
-        color.hsva = (0, 0, brightness)
+        color.hsva = (hue, value, brightness)
     except Exception:
         print(brightness)
 

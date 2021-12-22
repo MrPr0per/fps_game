@@ -23,10 +23,15 @@ def control(player, clock, minimap, floor):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 exit()
-            if event.key == pygame.K_BACKQUOTE:  # бахропкъюуркалорукаие - это кнопка ё
+            if event.key == pygame.K_BACKQUOTE:  # бахропкъюуркалорукаие - это кнопка тильда
                 debug.DEBUG = True
-            if event.key == pygame.K_SPACE:
-                player.jump()
+            if not FLY_MOD:
+                if event.key == pygame.K_SPACE:
+                    if not player.in_process_of_jumping:
+                        player.jump()
+                if event.key == pygame.K_LSHIFT:
+                    if player.h_down == 0:
+                        player.dash()
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w] or keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_s]:

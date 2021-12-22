@@ -51,15 +51,24 @@ class Line_segment:
         k1, b1 = self.k, self.b
         k2, b2 = other.k, other.b
         if k1 - k2 == 0:
-            k1 = 10 ** -6
+            k1 = ALMOST_ZERO
         x = (b2 - b1) / (k1 - k2)
-        left_border1, right_border1 = self.borders
-        left_border2, right_border2 = other.borders
-        if (left_border1 <= x <= right_border1) and (left_border2 <= x <= right_border2):
-            y = k1 * x + b1
+        if type(other) != Line:
+            left_border1, right_border1 = self.borders
+            left_border2, right_border2 = other.borders
+            if not ((left_border1 <= x <= right_border1) and (left_border2 <= x <= right_border2)):
+                return None
+        y = k1 * x + b1
+        if type(other) != Line:
+            dist_from_beginning = math.hypot(other.column1.x - x, other.column1.y - y)
+        if type(other) == Wall:
+            h = other.vertical_k * dist_from_beginning + other.vertical_b
+            h_down = other.vertical_k_down * dist_from_beginning + other.vertical_b_down
+            return Column(x=x, y=y, h=h, h_down=h_down)
+        elif type(other) == Line_segment:
             return Point(x=x, y=y)
-        else:
-            return None
+        elif type(other) == Line:
+            return Point(x=x, y=y)
 
 
 class Line:
@@ -97,31 +106,7 @@ class Ray(Line_segment):
         point2 = Point(x2, y2)
         super().__init__(point1, point2)
 
-    def find_intersection(self, other):
-        if debug.DEBUG:
-            print('wadwfgrew')
-            debug.DEBUG = False
-        k1, b1 = self.k, self.b
-        k2, b2 = other.k, other.b
-        if k1 - k2 == 0:
-            k1 = ALMOST_ZERO
-        x = (b2 - b1) / (k1 - k2)
-        if type(other) != Line:
-            left_border1, right_border1 = self.borders
-            left_border2, right_border2 = other.borders
-            if not ((left_border1 <= x <= right_border1) and (left_border2 <= x <= right_border2)):
-                return None
-        y = k1 * x + b1
-        if type(other) != Line:
-            dist_from_beginning = math.hypot(other.column1.x - x, other.column1.y - y)
-        if type(other) == Wall:
-            h = other.vertical_k * dist_from_beginning + other.vertical_b
-            h_down = other.vertical_k_down * dist_from_beginning + other.vertical_b_down
-            return Column(x=x, y=y, h=h, h_down=h_down)
-        elif type(other) == Line_segment:
-            return Point(x=x, y=y)
-        elif type(other) == Line:
-            return Point(x=x, y=y)
+
 
 
 class Build:
@@ -134,6 +119,16 @@ class Build:
             wall_list.append(Wall(p1, p2))
         if is_closed and len(column_list) > 2:
             p1, p2 = column_list[-1], column_list[0]
+            wall_list.append(Wall(p1, p2))
+        self.wall_list = wall_list
+
+    def update_walls(self):
+        wall_list = []
+        for i in range(len(self.column_list) - 1):
+            p1, p2 = self.column_list[i], self.column_list[i + 1]
+            wall_list.append(Wall(p1, p2))
+        if self.is_closed and len(self.column_list) > 2:
+            p1, p2 = self.column_list[-1], self.column_list[0]
             wall_list.append(Wall(p1, p2))
         self.wall_list = wall_list
 
