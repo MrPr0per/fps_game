@@ -1,8 +1,12 @@
 import pygame
+import math
+from numba import njit, jit
+
 import debug
 from settings import *
 from geometric_classes import Ray, Line_segment, Point, Line, Column
-import math
+from resourses import textures
+
 
 
 class Drawing:
@@ -20,6 +24,43 @@ class Drawing:
 
     def clear_screen(self):
         self.sc.fill((0, 0, 0))
+
+    def draw_raycast(self):
+        debug.debug_first_ray = False
+        for ray_number in range(NUM_RAYS):
+            cur_angle = self.player.left_angle - ray_number * DELTA_ANGLE
+            ray = Ray(self.player, cur_angle)
+            min_dist = None
+            nearest_intersection = None
+            list_intersections = []
+            for build in self.floor.build_list:
+                for wall in build.wall_list:
+                    intersection = ray.find_intersection(wall)
+                    if intersection:
+                        dist = math.hypot(intersection.x - self.player.x,
+                                          intersection.y - self.player.y)
+                        if DRAW_ALL_WALS:
+                            list_intersections.append((dist, intersection))
+                        if min_dist:
+                            if dist < min_dist:
+                                min_dist = dist
+                                nearest_intersection = intersection
+                        else:
+                            min_dist = dist
+                            nearest_intersection = intersection
+
+            if min_dist and nearest_intersection:
+                if DRAW_ALL_WALS:
+                    list_intersections = sorted(list_intersections, key=lambda x: x[0],
+                                                reverse=True)
+                    for dist, intersection in list_intersections:
+                        draw_column(dist=dist, intersection=intersection,
+                                    player=self.player, cur_angle=cur_angle, sc=self.sc,
+                                    ray_number=ray_number)
+                else:
+                    draw_column(dist=min_dist, intersection=nearest_intersection,
+                                player=self.player, cur_angle=cur_angle, sc=self.sc,
+                                ray_number=ray_number)
 
     def draw_raycast_alt_version(self):
         # тут какой то странны баг с отрисовкой, когда находишься близко к стене
@@ -152,43 +193,6 @@ class Drawing:
                              (0, HEIGHT - screen_h_down, WIDTH, screen_h_down - last_h + 1))
             last_h = screen_h_down
 
-    def draw_raycast(self):
-        debug.debug_first_ray = False
-        for ray_number in range(NUM_RAYS):
-            cur_angle = self.player.left_angle - ray_number * DELTA_ANGLE
-            ray = Ray(self.player, cur_angle)
-            min_dist = None
-            nearest_intersection = None
-            list_intersections = []
-            for build in self.floor.build_list:
-                for wall in build.wall_list:
-                    intersection = ray.find_intersection(wall)
-                    if intersection:
-                        dist = math.hypot(intersection.x - self.player.x,
-                                          intersection.y - self.player.y)
-                        if DRAW_ALL_WALS:
-                            list_intersections.append((dist, intersection))
-                        if min_dist:
-                            if dist < min_dist:
-                                min_dist = dist
-                                nearest_intersection = intersection
-                        else:
-                            min_dist = dist
-                            nearest_intersection = intersection
-
-            if min_dist and nearest_intersection:
-                if DRAW_ALL_WALS:
-                    list_intersections = sorted(list_intersections, key=lambda x: x[0],
-                                                reverse=True)
-                    for dist, intersection in list_intersections:
-                        draw_column(dist=dist, intersection=intersection,
-                                    player=self.player, cur_angle=cur_angle, sc=self.sc,
-                                    ray_number=ray_number)
-                else:
-                    draw_column(dist=min_dist, intersection=nearest_intersection,
-                                player=self.player, cur_angle=cur_angle, sc=self.sc,
-                                ray_number=ray_number)
-
     def draw_minimap(self):
         self.minimap.sc.fill((0, 0, 0))
 
@@ -299,7 +303,8 @@ def find_dist(point1, point2):
 def find_color(dist, hue=0, value=0):
     color = pygame.Color(0)
     smooth = 10
-    brightness = 100 - 100 * smooth / (dist + smooth)
+    # brightness = 100 - 100 * smooth / (dist + smooth)
+    brightness = 100 * smooth / (dist + smooth)
     try:
         color.hsva = (hue, value, brightness)
     except Exception:
@@ -373,9 +378,19 @@ def draw_column(dist, intersection, player, cur_angle, sc, ray_number):
     color = find_color(dist)
 
     # отрисовка
-    pygame.draw.rect(sc, color, (
-        ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, WIDTH / NUM_RAYS,
-        screen_h))
+    texture = textures[ILLUSION_1]
+    width = texture.get_width() - WIDTH / NUM_RAYS
+    texture = pygame.transform.scale(texture, (texture.get_width(), screen_h))
+    texture = texture.subsurface(
+        ((intersection.offset * 100) % width, 0, WIDTH / NUM_RAYS, texture.get_height()))
+    # column_texture_surface.blit(texture, (0, 0))
+    # column_texture_surface.blit(texture, (0, 0))
+    # sc.blit(texture, (10, 0))
+
+    sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
+    # pygame.draw.rect(sc, color, (
+    #     ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, WIDTH / NUM_RAYS,
+    #     screen_h))
 
 # def calculate_perspective(point_crds, player_crds, player_angle, player_fov, screen_border_angle,
 #                           screen_size):

@@ -251,8 +251,8 @@ if __name__ == '__main__':
     H_DOWN = 0
 
     # build_list = [[False, []]]
-    # FLOOR = Floor(build_list=[Build(column_list=[], is_closed=False)])
-    FLOOR = load_floor(10)
+    FLOOR = Floor(build_list=[Build(column_list=[], is_closed=False)])
+    # FLOOR = load_floor(10)
 
     while True:
         CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN, ENABLE_HEIGHTS = event_processing(

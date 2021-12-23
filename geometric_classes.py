@@ -1,4 +1,6 @@
 import math
+from numba import njit, jit
+
 from settings import *
 import debug
 
@@ -20,9 +22,10 @@ class Point:
 
 
 class Column(Point):
-    def __init__(self, x, y, h=3, h_down=0):
+    def __init__(self, x, y, h=3, h_down=0, offset=0):
         self.h = h
         self.h_down = h_down
+        self.offset = offset
         super().__init__(x, y)
 
     def __str__(self):
@@ -64,7 +67,7 @@ class Line_segment:
         if type(other) == Wall:
             h = other.vertical_k * dist_from_beginning + other.vertical_b
             h_down = other.vertical_k_down * dist_from_beginning + other.vertical_b_down
-            return Column(x=x, y=y, h=h, h_down=h_down)
+            return Column(x=x, y=y, h=h, h_down=h_down, offset=dist_from_beginning)
         elif type(other) == Line_segment:
             return Point(x=x, y=y)
         elif type(other) == Line:
@@ -107,10 +110,9 @@ class Ray(Line_segment):
         super().__init__(point1, point2)
 
 
-
-
 class Build:
-    def __init__(self, column_list, is_closed=False):
+    def __init__(self, column_list, is_closed=False, texture=None):
+        self.texture = texture
         self.column_list = column_list
         self.is_closed = is_closed
         wall_list = []

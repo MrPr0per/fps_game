@@ -1,5 +1,6 @@
 from geometric_classes import Floor, Build, Column
 import math
+from settings import *
 
 
 def load_floor(num_floor):
@@ -1052,6 +1053,14 @@ def load_floor(num_floor):
                 Column(65, 138.61, 3, 0),
                 Column(74.31, 133.24, 3, 0),
             ], is_closed=False),
+        ])
+    if num_floor == 14:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(-1, 5, 3, 0),
+                Column(1, 5, 3, 0),
+                Column(1, 15, 3, 0),
+            ], is_closed=False, texture=ILLUSION_1),
         ])
 
     return floor

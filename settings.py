@@ -20,7 +20,7 @@ ALMOST_INFINITY = 10 ** 5
 # raycast
 FOW_W = 90
 FOW_H = int(FOW_W * HEIGHT / WIDTH)
-SCALE_N_RAYS = 1/7
+SCALE_N_RAYS = 1/5
 NUM_RAYS = int(WIDTH * SCALE_N_RAYS)
 DELTA_ANGLE = FOW_W / NUM_RAYS
 MAX_DIST_RAY = ALMOST_INFINITY
@@ -43,6 +43,9 @@ RIGHT = 'right'
 BACK = 'back'
 UP = 'up'
 DOWN = 'down'
+
+# texture_names
+ILLUSION_1 = 'illusion'
 
 # phy6
 g_const = 9.8

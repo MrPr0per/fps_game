@@ -42,7 +42,12 @@ class Player(Column):
     def run(self, direction, fps, floor):
         if fps != 0:
             time = 1 / fps
-            dist = (self.speed + self.add_speed) * time
+            # при движении вбок добавочная скорость не учитывается:
+            if direction == FORWARD or direction == BACK:
+                dist = (self.speed + self.add_speed) * time
+            elif direction == LEFT or direction == RIGHT:
+                dist = self.speed * time
+
             angle = None
             if direction == FORWARD:
                 angle = self.angle_w
@@ -101,7 +106,6 @@ class Player(Column):
             self.vertical_inertia()
             self.in_process_of_pre_jump = True
 
-
     def vertical_inertia(self):
         self.vertical_inertia_start_time = pygame.time.get_ticks() / 1000
         self.in_process_of_vertical_inertia = True
@@ -124,7 +128,10 @@ class Player(Column):
 
         if self.in_process_of_vertical_inertia:
             t = pygame.time.get_ticks() / 1000 - self.vertical_inertia_start_time
-            add_h = -1 * math.sin(math.radians(360 * t * 1.5)) * 0.25
+            if self.in_process_of_pre_jump:
+                add_h = -1 * math.sin(math.radians(360 * t * 2.5)) * 0.25
+            else:
+                add_h = -1 * math.sin(math.radians(360 * t * 1.5)) * 0.25
             if add_h > 0:
                 add_h = 0
                 self.in_process_of_vertical_inertia = False
