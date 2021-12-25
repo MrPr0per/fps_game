@@ -1053,5 +1053,13 @@ def load_floor(num_floor):
                 Column(74.31, 133.24, 3, 0),
             ], is_closed=False),
         ])
-
+    if num_floor == 15:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(-3, -2, 3, 0),
+                Column(3, -2, 3, 0),
+                Column(3, 20, 3, 0),
+                Column(-3, 20, 3, 0),
+            ], is_closed=True),
+        ])
     return floor

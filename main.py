@@ -13,7 +13,7 @@ pygame.init()
 clock = pygame.time.Clock()
 
 player = Player()
-floor = floors.load_floor(10)
+floor = floors.load_floor(15)
 minimap = Minimap()
 drawing = Drawing(clock, player, floor, minimap)
 
