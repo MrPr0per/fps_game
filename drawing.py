@@ -9,7 +9,6 @@ from geometric_classes import Ray, Line_segment, Point, Line, Column
 from resourses import textures
 
 
-
 class Drawing:
     def __init__(self, clock, player, floor, minimap):
         sc = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -301,14 +300,15 @@ def find_color(dist, hue=0, value=0):
     color = pygame.Color(0)
     smooth = 10
     # brightness = 100 - 100 * smooth / (dist + smooth)
-    brightness = 100 * smooth / (dist + smooth)
-    try:
-        color.hsva = (hue, value, brightness)
-    except Exception:
-        print(brightness)
-
+    brightness = 100 * find_brightness(dist)
+    color.hsva = (hue, value, brightness)
     return color
 
+
+def find_brightness(dist):
+    smooth = 1/500
+    brightness = 1 / (1 + smooth * dist ** 2)
+    return brightness
 
 def correcting_angle(angle):
     """эта функция нужна, чтобы значения угла были не от 0 до 360, а в нужном диапазоне
@@ -377,29 +377,26 @@ def draw_column(intersection, player, cur_angle, sc, ray_number):
         pygame.draw.rect(sc, color, (
             ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, COLUMN_WIDTH,
             screen_h))
-    # if TEXTURING:
-    #     texture = textures[intersection.texture_name]
-    #     texture_scale = screen_h / texture.get_height()
-    #     screen_offset = screen_h * intersection.offset / intersection.column.h
-    #
-    #     texture = pygame.transform.scale(texture, (texture.get_width() * texture_scale, screen_h))
-    #     width_texture = texture.get_width()
-    #
-    #     screen_offset = screen_offset % width_texture
-    #     if screen_offset + COLUMN_WIDTH > width_texture:
-    #         screen_offset = width_texture - COLUMN_WIDTH
-    #     texture = texture.subsurface((screen_offset, 0, COLUMN_WIDTH, screen_h))
-    #
-    #     sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
     if TEXTURING:
+        if debug.DEBUG:
+            print('ddddddddddddd')
+        brightness = find_brightness(intersection.dist)
         texture = textures[intersection.texture_name]
         texture_scale = texture.get_height() / screen_h
         width_texture = texture.get_width()
         screen_offset = screen_h * intersection.offset / intersection.column.h
 
         try:
-            texture = texture.subsurface((screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0, COLUMN_WIDTH * texture_scale, texture.get_height())
+            texture = texture.subsurface(
+                (screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0,
+                COLUMN_WIDTH * texture_scale, texture.get_height())
             texture = pygame.transform.scale(texture, (COLUMN_WIDTH, screen_h))
+            if SHADE_TEXTURES:
+                for y in range(texture.get_height()):
+                    for x in range(texture.get_width()):
+                        color = texture.get_at((x, y))
+                        color = (color[0] * brightness, color[1] * brightness, color[2] * brightness)
+                        texture.set_at((x, y), color)
             sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
         except ValueError as error:
             print(error)
