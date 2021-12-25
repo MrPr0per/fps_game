@@ -1091,5 +1091,14 @@ def load_floor(num_floor):
                 Column(-5, -3, 3, 0),
             ], is_closed=True, texture_name=TEXT_2),
         ])
+    if num_floor == 15:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(-3, -2, 3, 0),
+                Column(3, -2, 3, 0),
+                Column(3, 20, 3, 0),
+                Column(-3, 20, 3, 0),
+            ], is_closed=True),
+        ])
 
     return floor

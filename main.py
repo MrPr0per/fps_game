@@ -14,7 +14,7 @@ pygame.init()
 clock = pygame.time.Clock()
 
 player = Player()
-floor = floors.load_floor(14)
+floor = floors.load_floor(15)
 minimap = Minimap()
 drawing = Drawing(clock, player, floor, minimap)
 
@@ -25,7 +25,7 @@ while True:
     drawing.clear_screen()
     drawing.draw_horizon()
     drawing.draw_raycast()
-    # drawing.draw_minimap()
+    drawing.draw_minimap()
     drawing.draw_fps()
     drawing.draw_info()
 
