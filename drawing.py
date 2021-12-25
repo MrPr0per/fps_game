@@ -1,6 +1,7 @@
 import pygame
 import math
 from numba import njit, jit
+import time
 
 import debug
 from settings import *
@@ -30,35 +31,31 @@ class Drawing:
         for ray_number in range(NUM_RAYS):
             cur_angle = self.player.left_angle - ray_number * DELTA_ANGLE
             ray = Ray(self.player, cur_angle)
-            min_dist = None
             nearest_intersection = None
             list_intersections = []
             for build in self.floor.build_list:
                 for wall in build.wall_list:
                     intersection = ray.find_intersection(wall)
                     if intersection:
-                        dist = math.hypot(intersection.x - self.player.x,
-                                          intersection.y - self.player.y)
+                        intersection.texture_name = build.texture_name
                         if DRAW_ALL_WALS:
-                            list_intersections.append((dist, intersection))
-                        if min_dist:
-                            if dist < min_dist:
-                                min_dist = dist
+                            list_intersections.append(intersection)
+                        if nearest_intersection:
+                            if intersection.dist < nearest_intersection.dist:
                                 nearest_intersection = intersection
                         else:
-                            min_dist = dist
                             nearest_intersection = intersection
 
-            if min_dist and nearest_intersection:
+            if nearest_intersection:
                 if DRAW_ALL_WALS:
-                    list_intersections = sorted(list_intersections, key=lambda x: x[0],
+                    list_intersections = sorted(list_intersections, key=lambda x: x.dist,
                                                 reverse=True)
-                    for dist, intersection in list_intersections:
-                        draw_column(dist=dist, intersection=intersection,
+                    for intersection in list_intersections:
+                        draw_column(intersection=intersection,
                                     player=self.player, cur_angle=cur_angle, sc=self.sc,
                                     ray_number=ray_number)
                 else:
-                    draw_column(dist=min_dist, intersection=nearest_intersection,
+                    draw_column(intersection=nearest_intersection,
                                 player=self.player, cur_angle=cur_angle, sc=self.sc,
                                 ray_number=ray_number)
 
@@ -136,7 +133,7 @@ class Drawing:
                     print(brightness)
 
                 pygame.draw.rect(self.sc, color, (
-                    int(i / SCALE_N_RAYS), int(dist_top), int(WIDTH / NUM_RAYS),
+                    int(i / SCALE_N_RAYS), int(dist_top), int(COLUMN_WIDTH),
                     int(visual_height)))
 
     def draw_horizon(self):
@@ -261,7 +258,7 @@ class Drawing:
         fps = int(self.clock.get_fps())
         color = pygame.Color('white')
         if fps < 30:
-            color = pygame.Color('blue')
+            color = pygame.Color('red')
         elif fps < 60:
             color = pygame.Color('cyan')
         elif fps >= 60:
@@ -329,11 +326,11 @@ def find_screen_h_and_h_down(dist, intersection, player, sc):
     # находим углы ключевых точек
     angle_top_point = find_angle_point(
         Point(0, player.h_down + player.h),
-        Point(dist, intersection.h_down + intersection.h))
+        Point(dist, intersection.column.h_down + intersection.column.h))
 
     angle_bott_point = -360 + find_angle_point(
         Point(0, player.h_down + player.h),
-        Point(dist, intersection.h_down))
+        Point(dist, intersection.column.h_down))
 
     angle_border_point = player.bott_angle
 
@@ -366,31 +363,46 @@ def find_screen_h_and_h_down(dist, intersection, player, sc):
     return screen_h, screen_h_down
 
 
-def draw_column(dist, intersection, player, cur_angle, sc, ray_number):
+def draw_column(intersection, player, cur_angle, sc, ray_number):
     # убираем эффект рыбьего глаза
     if not FISH_EYE:
-        dist *= math.cos(math.radians(player.angle_w - cur_angle))
+        intersection.dist *= math.cos(math.radians(player.angle_w - cur_angle))
 
     # находим экранную высоту стены и ее экранное расстояние над землей
-    screen_h, screen_h_down = find_screen_h_and_h_down(dist, intersection, player, sc)
+    screen_h, screen_h_down = find_screen_h_and_h_down(intersection.dist, intersection, player, sc)
 
-    # определяем цвет в зависимости от расстояния
-    color = find_color(dist)
+    if not TEXTURING:
+        # определяем цвет в зависимости от расстояния
+        color = find_color(intersection.dist)
+        pygame.draw.rect(sc, color, (
+            ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, COLUMN_WIDTH,
+            screen_h))
+    # if TEXTURING:
+    #     texture = textures[intersection.texture_name]
+    #     texture_scale = screen_h / texture.get_height()
+    #     screen_offset = screen_h * intersection.offset / intersection.column.h
+    #
+    #     texture = pygame.transform.scale(texture, (texture.get_width() * texture_scale, screen_h))
+    #     width_texture = texture.get_width()
+    #
+    #     screen_offset = screen_offset % width_texture
+    #     if screen_offset + COLUMN_WIDTH > width_texture:
+    #         screen_offset = width_texture - COLUMN_WIDTH
+    #     texture = texture.subsurface((screen_offset, 0, COLUMN_WIDTH, screen_h))
+    #
+    #     sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
+    if TEXTURING:
+        texture = textures[intersection.texture_name]
+        texture_scale = texture.get_height() / screen_h
+        width_texture = texture.get_width()
+        screen_offset = screen_h * intersection.offset / intersection.column.h
 
-    # отрисовка
-    texture = textures[ILLUSION_1]
-    width = texture.get_width() - WIDTH / NUM_RAYS
-    texture = pygame.transform.scale(texture, (texture.get_width(), screen_h))
-    texture = texture.subsurface(
-        ((intersection.offset * 100) % width, 0, WIDTH / NUM_RAYS, texture.get_height()))
-    # column_texture_surface.blit(texture, (0, 0))
-    # column_texture_surface.blit(texture, (0, 0))
-    # sc.blit(texture, (10, 0))
-
-    sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
-    # pygame.draw.rect(sc, color, (
-    #     ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, WIDTH / NUM_RAYS,
-    #     screen_h))
+        try:
+            texture = texture.subsurface((screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0, COLUMN_WIDTH * texture_scale, texture.get_height())
+            texture = pygame.transform.scale(texture, (COLUMN_WIDTH, screen_h))
+            sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
+        except ValueError as error:
+            print(error)
 
 # def calculate_perspective(point_crds, player_crds, player_angle, player_fov, screen_border_angle,
 #                           screen_size):

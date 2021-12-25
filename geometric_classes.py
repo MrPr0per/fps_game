@@ -2,6 +2,7 @@ import math
 from numba import njit, jit
 
 from settings import *
+from resourses import *
 import debug
 
 
@@ -22,10 +23,9 @@ class Point:
 
 
 class Column(Point):
-    def __init__(self, x, y, h=3, h_down=0, offset=0):
+    def __init__(self, x, y, h=3, h_down=0):
         self.h = h
         self.h_down = h_down
-        self.offset = offset
         super().__init__(x, y)
 
     def __str__(self):
@@ -33,6 +33,15 @@ class Column(Point):
 
     def __repr__(self):
         return self.__str__()
+
+
+class Intersection():
+    def __init__(self, column, offset, dist, texture_name=TEXT_MISSING):
+        self.column = column
+        self.offset = offset
+        self.texture_name = texture_name
+        self.dist = dist
+
 
 
 class Line_segment:
@@ -51,23 +60,31 @@ class Line_segment:
         self.borders = (self.left_border, self.right_border)
 
     def find_intersection(self, other):
+        def find_x(k1, b1, k2, b2):
+            if k1 - k2 == 0:
+                k1 = ALMOST_ZERO
+            x = (b2 - b1) / (k1 - k2)
+            return x
+
         k1, b1 = self.k, self.b
         k2, b2 = other.k, other.b
-        if k1 - k2 == 0:
-            k1 = ALMOST_ZERO
-        x = (b2 - b1) / (k1 - k2)
+
+        x = find_x(k1, b1, k2, b2)
+
         if type(other) != Line:
             left_border1, right_border1 = self.borders
             left_border2, right_border2 = other.borders
             if not ((left_border1 <= x <= right_border1) and (left_border2 <= x <= right_border2)):
                 return None
+
         y = k1 * x + b1
-        if type(other) != Line:
-            dist_from_beginning = math.hypot(other.column1.x - x, other.column1.y - y)
         if type(other) == Wall:
+            dist_from_beginning = math.hypot(other.column1.x - x, other.column1.y - y)
             h = other.vertical_k * dist_from_beginning + other.vertical_b
             h_down = other.vertical_k_down * dist_from_beginning + other.vertical_b_down
-            return Column(x=x, y=y, h=h, h_down=h_down, offset=dist_from_beginning)
+            dist_to_intersection = math.hypot(x - self.point1.x, y - self.point1.y)
+            column = Column(x=x, y=y, h=h, h_down=h_down)
+            return Intersection(column, dist_from_beginning, dist_to_intersection)
         elif type(other) == Line_segment:
             return Point(x=x, y=y)
         elif type(other) == Line:
@@ -111,8 +128,8 @@ class Ray(Line_segment):
 
 
 class Build:
-    def __init__(self, column_list, is_closed=False, texture=None):
-        self.texture = texture
+    def __init__(self, column_list, is_closed=False, texture_name=TEXT_MISSING):
+        self.texture_name = texture_name
         self.column_list = column_list
         self.is_closed = is_closed
         wall_list = []

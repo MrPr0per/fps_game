@@ -20,13 +20,15 @@ ALMOST_INFINITY = 10 ** 5
 # raycast
 FOW_W = 90
 FOW_H = int(FOW_W * HEIGHT / WIDTH)
-SCALE_N_RAYS = 1/5
+SCALE_N_RAYS = 1/10
 NUM_RAYS = int(WIDTH * SCALE_N_RAYS)
+COLUMN_WIDTH = WIDTH / NUM_RAYS
 DELTA_ANGLE = FOW_W / NUM_RAYS
 MAX_DIST_RAY = ALMOST_INFINITY
 DIST_TO_SCREEN = NUM_RAYS / (2 * math.tan(math.radians(FOW_W / 2)))
 DRAW_ALL_WALS = True
 FISH_EYE = False
+TEXTURING = True
 
 # horizon
 MAX_DIST_HORIZON = 100
@@ -43,9 +45,6 @@ RIGHT = 'right'
 BACK = 'back'
 UP = 'up'
 DOWN = 'down'
-
-# texture_names
-ILLUSION_1 = 'illusion'
 
 # phy6
 g_const = 9.8

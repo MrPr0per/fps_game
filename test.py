@@ -1,6 +1,10 @@
-print(round(1.1, 2))
-print(round(1.11, 2))
-print(round(1.111, 2))
-print(round(1.1111, 2))
-print(round(1.11111, 2))
-print(round(1.111111, 2))
+import time
+time_start = time.time()
+S = 0
+for i in range(1000):
+    for j in range(1000):
+            S += i + j
+time_fin = time.time()
+print(time_start)
+print(time_fin)
+print(time_fin - time_start)

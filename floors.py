@@ -1,6 +1,7 @@
 from geometric_classes import Floor, Build, Column
 import math
 from settings import *
+from resourses import *
 
 
 def load_floor(num_floor):
@@ -1059,8 +1060,36 @@ def load_floor(num_floor):
             Build(column_list=[
                 Column(-1, 5, 3, 0),
                 Column(1, 5, 3, 0),
-                Column(1, 15, 3, 0),
-            ], is_closed=False, texture=ILLUSION_1),
+                Column(1, 115, 3, 0),
+            ], is_closed=False, texture_name=TEXT_ILLUSION_1),
+            # ], is_closed=False, texture_name=TEXT_2),
+            Build(column_list=[
+                Column(2, 3, 1, 0),
+                Column(5, 3, 1, 0),
+                Column(3, 5, 1, 1),
+            ], is_closed=True, texture_name=TEXT_1),
+            Build(column_list=[
+                Column(-5, 5, 3, 0),
+                Column(-2, 5, 3, 0),
+            ], is_closed=True, texture_name=TEXT_GRADIENT),
+            Build(column_list=[
+                Column(10, 5, 1, 0),
+                Column(10, 4, 1, 0),
+            ], is_closed=False),
+            Build(column_list=[
+                Column(10, 4, 2, 0),
+                Column(10, 2, 2, 0),
+            ], is_closed=False),
+            Build(column_list=[
+                Column(10, 2, 3, 0),
+                Column(10, -1, 3, 0),
+            ], is_closed=False),
+            Build(column_list=[
+                Column(-5, 0, 3, 0),
+                Column(-8, 0, 3, 0),
+                Column(-8, -3, 3, 0),
+                Column(-5, -3, 3, 0),
+            ], is_closed=True, texture_name=TEXT_2),
         ])
 
     return floor

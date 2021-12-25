@@ -42,11 +42,11 @@ class Player(Column):
     def run(self, direction, fps, floor):
         if fps != 0:
             time = 1 / fps
-            # при движении вбок добавочная скорость не учитывается:
+            # при движении вбок добавочная скорость меньше:
             if direction == FORWARD or direction == BACK:
                 dist = (self.speed + self.add_speed) * time
             elif direction == LEFT or direction == RIGHT:
-                dist = self.speed * time
+                dist = (self.speed + self.add_speed * 0.5) * time
 
             angle = None
             if direction == FORWARD:
@@ -69,7 +69,7 @@ class Player(Column):
                     for wall in build.wall_list:
                         intersection = move_vector.find_intersection(wall)
                         if intersection:
-                            if self.h_down <= intersection.h_down + intersection.h and self.h_down + self.h >= intersection.h_down:
+                            if self.h_down <= intersection.column.h_down + intersection.column.h and self.h_down + self.h >= intersection.column.h_down:
                                 is_intersection = True
                                 self.add_speed = 0
                                 break

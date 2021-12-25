@@ -1,5 +1,6 @@
 import pygame
 import math
+import time
 
 from settings import *
 from player import Player
