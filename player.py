@@ -1,12 +1,17 @@
 import math
 import pygame
 from settings import *
+import debug
+from enemy import objects_group
 from geometric_classes import Column, Line_segment, Point
 
 
-class Player(Column):
+class Player(Column, pygame.sprite.Sprite):
     def __init__(self, x=0, y=0, angle_w=90, h=1.8, h_down=0, angle_h=0):
-        super().__init__(x=x, y=y, h=h, h_down=h_down)
+        pygame.sprite.Sprite.__init__(self)
+        self.radius = 0.4 * COLLIDE_SCALE
+        self.rect = pygame.Rect(x * COLLIDE_SCALE, y * COLLIDE_SCALE, ALMOST_ZERO * COLLIDE_SCALE, ALMOST_ZERO * COLLIDE_SCALE)
+        Column.__init__(self, x=x, y=y, h=h, h_down=h_down)
         self.angle_w = angle_w % 360
         self.fov_w = FOW_W
         self.left_angle = (angle_w + FOW_W / 2) % 360
@@ -63,24 +68,41 @@ class Player(Column):
 
             move_vector = Line_segment(self, Point(self.x + delta_x, self.y + delta_y))
 
+            if debug.DEBUG:
+                print('ddddddddddddd')
+                debug.DEBUG = False
             if COLLISION:
                 is_intersection = False
-                for build in floor.build_list:
-                    for wall in build.wall_list:
-                        intersection = move_vector.find_intersection(wall)
-                        if intersection:
-                            if self.h_down <= intersection.column.h_down + intersection.column.h and self.h_down + self.h >= intersection.column.h_down:
-                                is_intersection = True
-                                self.add_speed = 0
-                                break
-                    if is_intersection:
-                        break
+                # print(pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_circle))
+                # print(self.rect)
+                # print(floor.object_list[0].rect)
+                # print()
+                self.rect.x += delta_x * COLLIDE_SCALE
+                self.rect.y += delta_y * COLLIDE_SCALE
+                if pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_circle):
+                    is_intersection = True
+                self.rect.x -= delta_x * COLLIDE_SCALE
+                self.rect.y -= delta_y * COLLIDE_SCALE
+                if not is_intersection:
+                    for build in floor.build_list:
+                        for wall in build.wall_list:
+                            intersection = move_vector.find_intersection(wall)
+                            if intersection:
+                                if self.h_down <= intersection.column.h_down + intersection.column.h and self.h_down + self.h >= intersection.column.h_down:
+                                    is_intersection = True
+                                    self.add_speed = 0
+                                    break
+                        if is_intersection:
+                            break
+
                 if is_intersection:
                     return 0, 0
 
             self.x += delta_x
             self.y += delta_y
             self.pos = (self.x, self.y)
+            self.rect.x += delta_x * COLLIDE_SCALE
+            self.rect.y += delta_y * COLLIDE_SCALE
 
             return delta_x, delta_y
         return 0, 0

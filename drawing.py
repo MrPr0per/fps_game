@@ -135,6 +135,31 @@ class Drawing:
                     int(i / SCALE_N_RAYS), int(dist_top), int(COLUMN_WIDTH),
                     int(visual_height)))
 
+    def draw_objects(self):
+        for obj in self.floor.object_list:
+            angle = find_angle_point(self.player, obj)
+            if (self.player.left_angle > angle > self.player.right_angle) \
+                or (
+                    (self.player.left_angle + 180) % 360 >
+                    (angle + 180) % 360 >
+                    (self.player.right_angle + 180) % 360
+                    ):
+                screen_h, screen_h_down = find_screen_h_and_h_down(find_dist(self.player, obj),
+                                                                   obj, self.player, self.sc)
+                image = obj.image
+                image = pygame.transform.scale(image,
+                                               (image.get_width() * screen_h / image.get_height(),
+                                                screen_h))
+                if self.player.left_angle < angle:
+                    x = ((self.player.left_angle + 180) % 360 - (angle + 180) % 360) / self.player.fov_w * WIDTH
+                else:
+                    x = (self.player.left_angle - angle) / self.player.fov_w * WIDTH
+                y = HEIGHT - screen_h_down - screen_h
+                obj_screen_crd = (x, y)
+                obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2,
+                                  obj_screen_crd[1] - image.get_height() / 2)
+                self.sc.blit(image, obj_screen_crd)
+
     def draw_horizon(self):
         # dist =
         # n = 180
@@ -206,6 +231,13 @@ class Drawing:
         pygame.draw.line(self.minimap.sc, (100, 100, 100), (0, self.minimap.CENTER_H),
                          (self.minimap.WIDTH, self.minimap.CENTER_H))
 
+        # объекты
+        for obj in self.floor.object_list:
+            image = pygame.transform.scale(obj.image, (obj.w * self.minimap.SCALE, obj.h * self.minimap.SCALE))
+            obj_screen_crd = convert_crds_to_scren(*obj.pos, self.player, self.minimap)
+            obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2, obj_screen_crd[1] - image.get_height() / 2)
+            self.minimap.sc.blit(image, obj_screen_crd)
+
         # игрок
         screen_player_crd = convert_crds_to_scren(*self.player.pos, self.player, self.minimap)
         pygame.draw.circle(self.minimap.sc, (100, 200, 0), screen_player_crd, 7)
@@ -230,13 +262,13 @@ class Drawing:
                              self.player.y + math.sin(
                                  math.radians(self.player.angle_w)) * MAX_DIST_RAY,
                              self.player, self.minimap))
-        for i in range(NUM_RAYS):
-            angle = self.player.left_angle - i * DELTA_ANGLE
-            pygame.draw.line(self.minimap.sc, (100, 100, 0), screen_player_crd,
-                             convert_crds_to_scren(
-                                 self.player.x + math.cos(math.radians(angle)) * MAX_DIST_RAY,
-                                 self.player.y + math.sin(math.radians(angle)) * MAX_DIST_RAY,
-                                 self.player, self.minimap))
+        # for i in range(NUM_RAYS):
+        #     angle = self.player.left_angle - i * DELTA_ANGLE
+        #     pygame.draw.line(self.minimap.sc, (100, 100, 0), screen_player_crd,
+        #                      convert_crds_to_scren(
+        #                          self.player.x + math.cos(math.radians(angle)) * MAX_DIST_RAY,
+        #                          self.player.y + math.sin(math.radians(angle)) * MAX_DIST_RAY,
+        #                          self.player, self.minimap))
         # карта
         for build in self.floor.build_list:
             for point in build.column_list:
@@ -306,9 +338,10 @@ def find_color(dist, hue=0, value=0):
 
 
 def find_brightness(dist):
-    smooth = 1/500
+    smooth = 1 / 100
     brightness = 1 / (1 + smooth * dist ** 2)
     return brightness
+
 
 def correcting_angle(angle):
     """эта функция нужна, чтобы значения угла были не от 0 до 360, а в нужном диапазоне
@@ -322,15 +355,15 @@ def correcting_angle(angle):
     return angle
 
 
-def find_screen_h_and_h_down(dist, intersection, player, sc):
+def find_screen_h_and_h_down(dist, column, player, sc):
     # находим углы ключевых точек
     angle_top_point = find_angle_point(
         Point(0, player.h_down + player.h),
-        Point(dist, intersection.column.h_down + intersection.column.h))
+        Point(dist, column.h_down + column.h))
 
     angle_bott_point = -360 + find_angle_point(
         Point(0, player.h_down + player.h),
-        Point(dist, intersection.column.h_down))
+        Point(dist, column.h_down))
 
     angle_border_point = player.bott_angle
 
@@ -369,7 +402,7 @@ def draw_column(intersection, player, cur_angle, sc, ray_number):
         intersection.dist *= math.cos(math.radians(player.angle_w - cur_angle))
 
     # находим экранную высоту стены и ее экранное расстояние над землей
-    screen_h, screen_h_down = find_screen_h_and_h_down(intersection.dist, intersection, player, sc)
+    screen_h, screen_h_down = find_screen_h_and_h_down(intersection.dist, intersection.column, player, sc)
 
     if not TEXTURING:
         # определяем цвет в зависимости от расстояния
@@ -378,8 +411,6 @@ def draw_column(intersection, player, cur_angle, sc, ray_number):
             ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, COLUMN_WIDTH,
             screen_h))
     if TEXTURING:
-        if debug.DEBUG:
-            print('ddddddddddddd')
         brightness = find_brightness(intersection.dist)
         texture = textures[intersection.texture_name]
         texture_scale = texture.get_height() / screen_h
@@ -395,7 +426,8 @@ def draw_column(intersection, player, cur_angle, sc, ray_number):
                 for y in range(texture.get_height()):
                     for x in range(texture.get_width()):
                         color = texture.get_at((x, y))
-                        color = (color[0] * brightness, color[1] * brightness, color[2] * brightness)
+                        color = (
+                        color[0] * brightness, color[1] * brightness, color[2] * brightness)
                         texture.set_at((x, y), color)
             sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
         except ValueError as error:

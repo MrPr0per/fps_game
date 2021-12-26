@@ -43,7 +43,6 @@ class Intersection():
         self.dist = dist
 
 
-
 class Line_segment:
     def __init__(self, point1, point2):
         self.point1 = point1
@@ -153,5 +152,6 @@ class Build:
 
 
 class Floor:
-    def __init__(self, build_list):
+    def __init__(self, build_list, object_list):
         self.build_list = build_list
+        self.object_list = object_list

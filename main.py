@@ -18,6 +18,18 @@ floor = floors.load_floor(15)
 minimap = Minimap()
 drawing = Drawing(clock, player, floor, minimap)
 
+#             тз:
+#
+# requirements.txt          .
+# стартовое окно            .
+# Финальное окно            .
+# подсчет результатов       .
+# спрайты                   OK
+# collide                   OK
+# анимация                  .
+# 3+ уровней                .
+# хранение данных           .
+
 while True:
 
     control(player, clock, minimap, floor)
@@ -25,6 +37,7 @@ while True:
     drawing.clear_screen()
     drawing.draw_horizon()
     drawing.draw_raycast()
+    drawing.draw_objects()
     drawing.draw_minimap()
     drawing.draw_fps()
     drawing.draw_info()
