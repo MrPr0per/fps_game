@@ -6,7 +6,8 @@ import time
 import debug
 from settings import *
 from geometric_classes import Ray, Line_segment, Point, Line, Column
-from resourses import textures
+from resourses import *
+from enemy import *
 
 
 class Drawing:
@@ -50,13 +51,15 @@ class Drawing:
                     list_intersections = sorted(list_intersections, key=lambda x: x.dist,
                                                 reverse=True)
                     for intersection in list_intersections:
-                        draw_column(intersection=intersection,
-                                    player=self.player, cur_angle=cur_angle, sc=self.sc,
-                                    ray_number=ray_number)
+                        draw_column(dist=intersection.dist, column=intersection.column,
+                                    texture_name=intersection.texture_name,
+                                    offset=intersection.offset,
+                                    player=self.player, cur_angle=cur_angle, sc=self.sc)
                 else:
-                    draw_column(intersection=nearest_intersection,
-                                player=self.player, cur_angle=cur_angle, sc=self.sc,
-                                ray_number=ray_number)
+                    draw_column(dist=nearest_intersection.dist, column=nearest_intersection.column,
+                                texture_name=nearest_intersection.texture_name,
+                                offset=nearest_intersection.offset, player=self.player,
+                                cur_angle=cur_angle, sc=self.sc)
 
     def draw_raycast_alt_version(self):
         # тут какой то странны баг с отрисовкой, когда находишься близко к стене
@@ -137,27 +140,58 @@ class Drawing:
 
     def draw_objects(self):
         for obj in self.floor.object_list:
+            if debug.DEBUG:
+                print(11111111111)
+                debug.DEBUG = False
             angle = find_angle_point(self.player, obj)
-            if (self.player.left_angle > angle > self.player.right_angle) \
-                or (
-                    (self.player.left_angle + 180) % 360 >
+            # TODO добавить подсчет этого расширения по нормальному
+            expansion = 90
+            # условие видимости
+            if (self.player.left_angle + expansion > angle > self.player.right_angle - expansion) \
+                    or (
+                    (self.player.left_angle + expansion + 180) % 360 >
                     (angle + 180) % 360 >
-                    (self.player.right_angle + 180) % 360
-                    ):
-                screen_h, screen_h_down = find_screen_h_and_h_down(find_dist(self.player, obj),
-                                                                   obj, self.player, self.sc)
-                image = obj.image
+                    (self.player.right_angle - expansion + 180) % 360):
+                dist = find_dist(self.player, obj)
+                screen_h, screen_h_down = find_screen_h_and_h_down(dist, obj, self.player, self.sc)
+                # если объект - враг, отрисовать его с нужного ракурса
+                if isinstance(obj, Enemy):
+                    true_enemy_angle = (obj.angle - self.player.angle_w) % 360
+                    if obj.hp > 0:
+                        image = obj.images[FRONT] if 90 < true_enemy_angle < 270 else obj.images[
+                            REAR]
+                        # if 90 < true_enemy_angle < 270:
+                        #     image = obj.images[FRONT]
+                        # else:
+                        #     image = obj.images[REAR]
+                    else:
+                        image = obj.images[DEAD]
+                else:
+                    image = obj.image
                 image = pygame.transform.scale(image,
                                                (image.get_width() * screen_h / image.get_height(),
                                                 screen_h))
                 if self.player.left_angle < angle:
-                    x = ((self.player.left_angle + 180) % 360 - (angle + 180) % 360) / self.player.fov_w * WIDTH
+                    x = ((self.player.left_angle + 180) % 360 - (
+                            angle + 180) % 360) / self.player.fov_w * WIDTH
                 else:
                     x = (self.player.left_angle - angle) / self.player.fov_w * WIDTH
                 y = HEIGHT - screen_h_down - screen_h
                 obj_screen_crd = (x, y)
                 obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2,
-                                  obj_screen_crd[1] - image.get_height() / 2)
+                                  obj_screen_crd[1])
+                if SHADE_TEXTURES:
+                    brightness = find_brightness(dist)
+                    shade = pygame.Surface(
+                        (image.get_width(), image.get_height())).convert_alpha()
+                    shade.fill((0, 0, 0, 255 * (1 - brightness)))
+
+                    mask = image
+
+                    shade.blit(mask, (0, 0), None, pygame.BLEND_RGBA_MULT)
+                    image.blit(shade, (0, 0))
+                    # image.blit(shade, (0, 0), None, pygame.BLEND_ALPHA_SDL2)
+
                 self.sc.blit(image, obj_screen_crd)
 
     def draw_horizon(self):
@@ -233,14 +267,32 @@ class Drawing:
 
         # объекты
         for obj in self.floor.object_list:
-            image = pygame.transform.scale(obj.image, (obj.w * self.minimap.SCALE, obj.h * self.minimap.SCALE))
+            # image = pygame.transform.scale(obj.image, (obj.w * self.minimap.SCALE,
+            #                                            obj.h * self.minimap.SCALE))
+            # obj_screen_crd = convert_crds_to_scren(*obj.pos, self.player, self.minimap)
+            # obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2,
+            #                   obj_screen_crd[1] - image.get_height() / 2)
+            # self.minimap.sc.blit(image, obj_screen_crd)
+
             obj_screen_crd = convert_crds_to_scren(*obj.pos, self.player, self.minimap)
-            obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2, obj_screen_crd[1] - image.get_height() / 2)
-            self.minimap.sc.blit(image, obj_screen_crd)
+            if isinstance(obj, Enemy):
+                color = (240, 0, 0)
+                pygame.draw.line(self.minimap.sc, color, obj_screen_crd,
+                                 convert_crds_to_scren(
+                                     obj.x + math.cos(math.radians(
+                                         obj.angle)) * obj.radius / COLLIDE_SCALE * 1.5,
+                                     obj.y + math.sin(math.radians(
+                                         obj.angle)) * obj.radius / COLLIDE_SCALE * 1.5,
+                                     self.player, self.minimap), 3)
+            else:
+                color = (150, 150, 50)
+            pygame.draw.circle(self.minimap.sc, color, obj_screen_crd,
+                               obj.w / 2 * self.minimap.SCALE)
 
         # игрок
         screen_player_crd = convert_crds_to_scren(*self.player.pos, self.player, self.minimap)
-        pygame.draw.circle(self.minimap.sc, (100, 200, 0), screen_player_crd, 7)
+        pygame.draw.circle(self.minimap.sc, (100, 200, 0), screen_player_crd,
+                           self.player.radius / COLLIDE_SCALE * self.minimap.SCALE)
         pygame.draw.line(self.minimap.sc, (100, 200, 0), screen_player_crd,
                          convert_crds_to_scren(
                              self.player.x + math.cos(
@@ -338,7 +390,7 @@ def find_color(dist, hue=0, value=0):
 
 
 def find_brightness(dist):
-    smooth = 1 / 100
+    smooth = 1 / 500
     brightness = 1 / (1 + smooth * dist ** 2)
     return brightness
 
@@ -396,42 +448,46 @@ def find_screen_h_and_h_down(dist, column, player, sc):
     return screen_h, screen_h_down
 
 
-def draw_column(intersection, player, cur_angle, sc, ray_number):
+def draw_column(dist, column, texture_name, offset, player, cur_angle, sc):
     # убираем эффект рыбьего глаза
     if not FISH_EYE:
-        intersection.dist *= math.cos(math.radians(player.angle_w - cur_angle))
+        dist *= math.cos(math.radians(player.angle_w - cur_angle))
 
     # находим экранную высоту стены и ее экранное расстояние над землей
-    screen_h, screen_h_down = find_screen_h_and_h_down(intersection.dist, intersection.column, player, sc)
+    screen_h, screen_h_down = find_screen_h_and_h_down(dist, column, player, sc)
+
+    if player.left_angle < cur_angle:
+        x = ((player.left_angle + 180) % 360 - (cur_angle + 180) % 360) / player.fov_w * WIDTH
+    else:
+        x = (player.left_angle - cur_angle) / player.fov_w * WIDTH
 
     if not TEXTURING:
         # определяем цвет в зависимости от расстояния
-        color = find_color(intersection.dist)
+        color = find_color(dist)
         pygame.draw.rect(sc, color, (
-            ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, COLUMN_WIDTH,
+            x, HEIGHT - screen_h_down - screen_h, COLUMN_WIDTH,
             screen_h))
     if TEXTURING:
-        brightness = find_brightness(intersection.dist)
-        texture = textures[intersection.texture_name]
+        brightness = find_brightness(dist)
+        texture = textures[texture_name]
         texture_scale = texture.get_height() / screen_h
         width_texture = texture.get_width()
-        screen_offset = screen_h * intersection.offset / intersection.column.h
+        screen_offset = screen_h * offset / column.h
 
         try:
             texture = texture.subsurface(
                 (screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0,
                 COLUMN_WIDTH * texture_scale, texture.get_height())
-            texture = pygame.transform.scale(texture, (COLUMN_WIDTH, screen_h))
+            texture = pygame.transform.scale(texture, (COLUMN_WIDTH + 1, screen_h))
             if SHADE_TEXTURES:
-                for y in range(texture.get_height()):
-                    for x in range(texture.get_width()):
-                        color = texture.get_at((x, y))
-                        color = (
-                        color[0] * brightness, color[1] * brightness, color[2] * brightness)
-                        texture.set_at((x, y), color)
-            sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
+                shade = pygame.Surface((texture.get_width(), texture.get_height())).convert_alpha()
+                shade.fill((0, 0, 0, 255 * (1 - brightness)))
+                texture.blit(shade, (0, 0))
+            sc.blit(texture, (x, HEIGHT - screen_h_down - screen_h))
         except ValueError as error:
-            print(error)
+            print(error, texture.get_rect(), pygame.Rect(
+                (screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0,
+                COLUMN_WIDTH * texture_scale, texture.get_height()))
 
 # def calculate_perspective(point_crds, player_crds, player_angle, player_fov, screen_border_angle,
 #                           screen_size):

@@ -52,6 +52,8 @@ class Player(Column, pygame.sprite.Sprite):
                 dist = (self.speed + self.add_speed) * time
             elif direction == LEFT or direction == RIGHT:
                 dist = (self.speed + self.add_speed * 0.5) * time
+            else:
+                dist = None
 
             angle = None
             if direction == FORWARD:
@@ -68,15 +70,8 @@ class Player(Column, pygame.sprite.Sprite):
 
             move_vector = Line_segment(self, Point(self.x + delta_x, self.y + delta_y))
 
-            if debug.DEBUG:
-                print('ddddddddddddd')
-                debug.DEBUG = False
             if COLLISION:
                 is_intersection = False
-                # print(pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_circle))
-                # print(self.rect)
-                # print(floor.object_list[0].rect)
-                # print()
                 self.rect.x += delta_x * COLLIDE_SCALE
                 self.rect.y += delta_y * COLLIDE_SCALE
                 if pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_circle):
@@ -94,7 +89,6 @@ class Player(Column, pygame.sprite.Sprite):
                                     break
                         if is_intersection:
                             break
-
                 if is_intersection:
                     return 0, 0
 
@@ -106,6 +100,10 @@ class Player(Column, pygame.sprite.Sprite):
 
             return delta_x, delta_y
         return 0, 0
+
+    def hit(self):
+        pass
+        # TODO: сделать тут все
 
     def fly(self, direction, fps):
         if fps != 0:

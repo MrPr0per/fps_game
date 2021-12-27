@@ -1,10 +1,20 @@
-import time
-time_start = time.time()
-S = 0
-for i in range(1000):
-    for j in range(1000):
-            S += i + j
-time_fin = time.time()
-print(time_start)
-print(time_fin)
-print(time_fin - time_start)
+import pygame
+from pygame.locals import *
+
+pygame.init()
+display = pygame.display.set_mode((320, 240))
+
+background = pygame.image.load("leaves.png").convert_alpha()
+mask = pygame.image.load("mask-fuzzy.png").convert_alpha()
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    # draw
+    display.fill(Color(255, 0, 255))
+    masked = background.copy()
+    masked.blit(mask, (0, 0), None, pygame.BLEND_RGBA_MULT)
+    display.blit(masked, (0, 0))
+    pygame.display.flip()

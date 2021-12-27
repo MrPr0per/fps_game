@@ -1095,13 +1095,20 @@ def load_floor(num_floor):
     if num_floor == 15:
         floor = Floor(build_list=[
             Build(column_list=[
-                Column(3, -2, 3, 0),
-                Column(-3, -2, 3, 0),
+                Column(-3, -4, 3, 0),
+                Column(-3, 5, 3, 0),
+                Column(-8, 10, 3, 0),
+                Column(-8, 15, 3, 0),
                 Column(-3, 20, 3, 0),
                 Column(3, 20, 3, 0),
-            ], is_closed=True, texture_name=TEXT_KILL),
+                Column(8, 15, 3, 0),
+                Column(8, 10, 3, 0),
+                Column(2, 5, 3, 0),
+                Column(2, -4, 3, 0),
+            ], is_closed=False, texture_name=TEXT_KILL),
         ], object_list=[
-            Object(0, 18, 1, 0.5)
+            Object(0, 18, 1, 0.5),
+            Toflund(x=0, y=13, angle=270, images=objects_sprites[ENEMIES][TOFLUND]),
         ])
 
     return floor

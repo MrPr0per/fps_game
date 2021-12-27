@@ -33,12 +33,15 @@ TOFLUND = 'TOFLUND'
 # названия поз:
 FRONT = 'FRONT'
 REAR = 'REAR'
+DEAD = 'DEAD'
 
 objects_sprites = {
     BASE_OBJECT: pygame.image.load('resourses/objects/base_object.png').convert_alpha(),
     ENEMIES: {
         TOFLUND: {
-            FRONT: pygame.image.load('resourses/objects/enemies/toflund_front.png').convert(),
+            FRONT: pygame.image.load('resourses/objects/enemies/toflund_front.png').convert_alpha(),
+            REAR: pygame.image.load('resourses/objects/enemies/toflund_rear.png').convert_alpha(),
+            DEAD: pygame.image.load('resourses/objects/enemies/toflund_dead.png').convert_alpha(),
         },
     },
 }
