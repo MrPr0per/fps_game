@@ -34,3 +34,12 @@ class Toflund(Enemy):
         super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, image=images[FRONT], images=images,
                          hp=hp, damage=damage)
 
+
+class Baggebo(Enemy):
+    def __init__(self, x, y, angle, images):
+        h = 1
+        h_down = 1
+        hp = 1
+        damage = 10
+        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, image=images[FRONT], images=images,
+                         hp=hp, damage=damage)

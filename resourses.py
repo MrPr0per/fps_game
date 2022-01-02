@@ -30,18 +30,28 @@ ENEM_TOFLUND_FORWARD = 'TEXT_TOFLUND_FORWARD'
 ENEMIES = 'ENEMIES'
 # названия врагов
 TOFLUND = 'TOFLUND'
+BAGGEBO = 'BAGGEBO'
 # названия поз:
 FRONT = 'FRONT'
 REAR = 'REAR'
 DEAD = 'DEAD'
+# названия анимаций
+ROTATION = 'ROTATION'
+ATTACK = 'ATTACK'
 
 objects_sprites = {
     BASE_OBJECT: pygame.image.load('resourses/objects/base_object.png').convert_alpha(),
     ENEMIES: {
         TOFLUND: {
-            FRONT: pygame.image.load('resourses/objects/enemies/toflund_front.png').convert_alpha(),
-            REAR: pygame.image.load('resourses/objects/enemies/toflund_rear.png').convert_alpha(),
-            DEAD: pygame.image.load('resourses/objects/enemies/toflund_dead.png').convert_alpha(),
+            FRONT: pygame.image.load('resourses/objects/enemies/toflund/toflund_front.png').convert_alpha(),
+            REAR: pygame.image.load('resourses/objects/enemies/toflund/toflund_rear.png').convert_alpha(),
+            DEAD: pygame.image.load('resourses/objects/enemies/toflund/toflund_dead.png').convert_alpha(),
         },
+        BAGGEBO: {
+            ROTATION: [
+                # возможно неправильная загрузка
+                pygame.image.load(f'resourses/objects/enemies/baggebo/baggebo{i}.png').convert_alpha() for i in range(1, 9)
+            ]
+        }
     },
 }

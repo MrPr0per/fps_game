@@ -1106,6 +1106,10 @@ def load_floor(num_floor):
                 Column(2, 5, 3, 0),
                 Column(2, -4, 3, 0),
             ], is_closed=False, texture_name=TEXT_KILL),
+            Build(column_list=[
+                Column(0, 10, 2, 0),
+                Column(1.9, 10, 2, 0),
+            ], is_closed=False, texture_name=TEXT_GRADIENT),
         ], object_list=[
             Object(0, 18, 1, 0.5),
             Toflund(x=0, y=13, angle=270, images=objects_sprites[ENEMIES][TOFLUND]),

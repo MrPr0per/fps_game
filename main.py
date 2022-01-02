@@ -36,8 +36,7 @@ while True:
 
     drawing.clear_screen()
     drawing.draw_horizon()
-    drawing.draw_raycast()
-    drawing.draw_objects()
+    drawing.draw_world()
     drawing.draw_minimap()
     drawing.draw_fps()
     drawing.draw_info()
