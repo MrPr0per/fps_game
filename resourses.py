@@ -19,16 +19,13 @@ textures = {
     TEXT_MISSING:       pygame.image.load('resourses/textures/missing_textuere.png').convert(),
     TEXT_GRADIENT:      pygame.image.load('resourses/textures/gradient.png').convert(),
     TEXT_A:             pygame.image.load('resourses/textures/a.png').convert(),
-    TEXT_KILL:          pygame.image.load('resourses/textures/kill.png').convert(),
+    TEXT_KILL:          pygame.image.load('resourses/textures/kill256.png').convert(),
 }
-
-# objects
-BASE_OBJECT = 'BASE_OBJECT'
-ENEM_TOFLUND_FORWARD = 'TEXT_TOFLUND_FORWARD'
 
 # названия категорий
 ENEMIES = 'ENEMIES'
 # названия врагов
+BASE_OBJECT = 'BASE_OBJECT'
 TOFLUND = 'TOFLUND'
 BAGGEBO = 'BAGGEBO'
 # названия поз:
@@ -43,15 +40,17 @@ objects_sprites = {
     BASE_OBJECT: pygame.image.load('resourses/objects/base_object.png').convert_alpha(),
     ENEMIES: {
         TOFLUND: {
-            FRONT: pygame.image.load('resourses/objects/enemies/toflund/toflund_front.png').convert_alpha(),
-            REAR: pygame.image.load('resourses/objects/enemies/toflund/toflund_rear.png').convert_alpha(),
+            ROTATION: [
+                pygame.image.load('resourses/objects/enemies/toflund/toflund_front.png').convert_alpha(),
+                pygame.image.load('resourses/objects/enemies/toflund/toflund_rear.png').convert_alpha(),
+            ],
             DEAD: pygame.image.load('resourses/objects/enemies/toflund/toflund_dead.png').convert_alpha(),
         },
         BAGGEBO: {
             ROTATION: [
                 # возможно неправильная загрузка
                 pygame.image.load(f'resourses/objects/enemies/baggebo/baggebo{i}.png').convert_alpha() for i in range(1, 9)
-            ]
-        }
+            ],
+        },
     },
 }

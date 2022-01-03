@@ -65,6 +65,7 @@ def draw_params():
     sc.blit(render, (0, 30))
 
     text_list = [
+        'СТАВИТЬ СТЕНЫ ПО ЧАСОВОЙ СТРЕЛКЕ ДЛЯ КОРРЕКТНОГО ОТОБРАЖЕНИЯ ТЕКСТУР ',
         'space - поставить точку',
         'tab - создать новую группу точек',
         'с - изменить замкнутость группы',
@@ -145,8 +146,26 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN, ENABLE_HE
                     for column in build.column_list:
                         print(
                             f'\t\tColumn{(round(column.x, 2), round(column.y, 2), round(column.h, 2), round(column.h_down, 2))},')
-                    print(f'\t], is_closed={build.is_closed}),')
+                    print(f'\t], is_closed={build.is_closed}, texture_name={build.texture_name})')
+                print('], object_list=[')
+                for obj in FLOOR.object_list:
+                    # type() возвращает строку типа <class '__main__.Aboba'>
+                    # эти 2 строки ниже вытаскивают само название класса
+                    type_obj = str(type(obj))
+                    type_obj = type_obj[type_obj.rfind('.') + 1:type_obj.rfind('\'')]
+                    print(f'\t{type(type_obj)}(x={obj.x}, y={obj.y}, angle={obj.angle})')
                 print('])')
+
+                # ], is_closed=False, texture_name=TEXT_KILL),
+                #             # Build(column_list=[
+                #             #     Column(0, 10, 2, 0),
+                #             #     Column(1.9, 10, 2, 0),
+                #             # ], is_closed=False, texture_name=TEXT_GRADIENT),
+                #         ], object_list=[
+                #             Object(0, 18, 1, 0.5),
+                #             Baggebo(x=0, y=13, angle=270),
+                #
+                #         ])
 
             if event.key == pygame.K_m:
                 build_list = FLOOR.build_list.copy()

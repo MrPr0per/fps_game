@@ -1112,7 +1112,28 @@ def load_floor(num_floor):
             ], is_closed=False, texture_name=TEXT_GRADIENT),
         ], object_list=[
             Object(0, 18, 1, 0.5),
-            Toflund(x=0, y=13, angle=270, images=objects_sprites[ENEMIES][TOFLUND]),
+            Baggebo(x=0, y=13, angle=270),
+        ])
+    if num_floor == 16:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(-3, -3, 3, 0),
+                Column(-3, 5, 3, 0),
+                Column(-10, 5, 3, 0),
+                Column(-13, 8, 3, 0),
+                Column(-13, 17.76, 3, 0),
+                Column(-10, 21, 3, 0),
+                Column(28, 21, 3, 0),
+                Column(31, 18, 3, 0),
+                Column(31, 10, 3, 0),
+                Column(28, 7, 3, 0),
+                Column(6, 7, 3, 0),
+                Column(4, 5, 3, 0),
+                Column(4, -3, 3, 0),
+            ], is_closed=False, texture_name=TEXT_KILL)
+        ], object_list=[
+            Baggebo(x=0, y=13, angle=0),
+            Toflund(x=10, y=13, angle=180)
         ])
 
     return floor

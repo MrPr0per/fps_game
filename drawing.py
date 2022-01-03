@@ -152,10 +152,18 @@ class Drawing:
                 screen_h, screen_h_down = find_screen_h_and_h_down(dist, obj, self.player, self.sc)
                 # если объект - враг, отрисовать его с нужного ракурса
                 if isinstance(obj, Enemy):
-                    true_enemy_angle = (obj.angle - self.player.angle_w) % 360
+                    true_enemy_angle = (obj.angle - find_angle_point(self.player, obj)) % 360
                     if obj.hp > 0:
-                        image = obj.images[FRONT] if 90 < true_enemy_angle < 270 else obj.images[
-                            REAR]
+                        # image = obj.images[FRONT] if 90 < true_enemy_angle < 270 else obj.images[
+                        #     REAR]
+                        image = objects_sprites[BASE_OBJECT]
+
+                        n_positions_to_view = len(objects_sprites[ENEMIES][obj.name][ROTATION])
+                        angle_of_one_position_to_view = 360 / n_positions_to_view
+                        true_enemy_angle = (true_enemy_angle - (180 - 360 / (2 * n_positions_to_view))) % 360
+                        index = int(true_enemy_angle // angle_of_one_position_to_view)
+                        image = objects_sprites[ENEMIES][obj.name][ROTATION][index]
+                        # print(true_enemy_angle)
                     else:
                         image = obj.images[DEAD]
                 else:
@@ -418,7 +426,7 @@ def draw_column(dist, column, texture_name, offset, player, cur_angle, sc):
         try:
             texture = texture.subsurface(
                 (screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0,
-                COLUMN_WIDTH * texture_scale, texture.get_height())
+                COLUMN_WIDTH * texture_scale + 1, texture.get_height())
             texture = pygame.transform.scale(texture, (COLUMN_WIDTH + 1, screen_h))
             if SHADE_TEXTURES:
                 shade = pygame.Surface((texture.get_width(), texture.get_height())).convert_alpha()

@@ -6,8 +6,13 @@ objects_group = pygame.sprite.Group()
 
 
 class Object(Column, pygame.sprite.Sprite):
-    def __init__(self, x, y, h, h_down, image=objects_sprites[BASE_OBJECT]):
+    def __init__(self, x, y, h, h_down, name=BASE_OBJECT):
         Column.__init__(self, x, y, h, h_down)
+        self.name = name
+        if name in objects_sprites[ENEMIES].keys():
+            image = objects_sprites[ENEMIES][name][ROTATION][0]
+        else:
+            image = objects_sprites[BASE_OBJECT]
         self.w = image.get_width() * h / image.get_height()
         pygame.sprite.Sprite.__init__(self, objects_group)
         self.image = image
@@ -17,29 +22,28 @@ class Object(Column, pygame.sprite.Sprite):
 
 
 class Enemy(Object):
-    def __init__(self, x, y, h, h_down, angle, image, images, hp, damage):
-        super().__init__(x=x, y=y, h=h, h_down=h_down, image=image)
+    def __init__(self, x, y, h, h_down, angle, hp, damage, name):
+        super().__init__(x=x, y=y, h=h, h_down=h_down, name=name)
         self.angle = angle
-        self.images = images
         self.hp = hp
         self.damage = damage
 
 
 class Toflund(Enemy):
-    def __init__(self, x, y, angle, images):
+    def __init__(self, x, y, angle):
         h = 3
         h_down = 0
         hp = 1
         damage = 10
-        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, image=images[FRONT], images=images,
-                         hp=hp, damage=damage)
+        name = TOFLUND
+        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, hp=hp, damage=damage, name=name)
 
 
 class Baggebo(Enemy):
-    def __init__(self, x, y, angle, images):
+    def __init__(self, x, y, angle):
         h = 1
         h_down = 1
         hp = 1
         damage = 10
-        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, image=images[FRONT], images=images,
-                         hp=hp, damage=damage)
+        name = BAGGEBO
+        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, hp=hp, damage=damage, name=name)
