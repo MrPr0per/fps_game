@@ -32,6 +32,8 @@ def control(player, clock, minimap, floor):
                 if event.key == pygame.K_LSHIFT:
                     if player.h_down == 0:
                         player.dash()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            player.hit(floor)
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w] or keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_s]:

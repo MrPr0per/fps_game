@@ -1,11 +1,5 @@
-class Aboba:
-    def __init__(self):
-        pass
+def factor(n):
+    return eval('*'.join(list(str(i) for i in range(1, n + 1))))
 
 
-a = Aboba()
-a = str(type(a))
-print(a)
-a = a[a.rfind('.')+1:a.rfind('\'')]
-print(a)
-print(f'\t{a}(x=0, y=13, angle=270)')
+print(factor(10000))

@@ -2,21 +2,23 @@ import math
 import pygame
 from settings import *
 import debug
-from enemy import objects_group
+from enemy import objects_group, Enemy
 from geometric_classes import Column, Line_segment, Point
+from drawing import find_dist, find_angle_point
 
 
 class Player(Column, pygame.sprite.Sprite):
     def __init__(self, x=0, y=0, angle_w=90, h=1.8, h_down=0, angle_h=0):
         pygame.sprite.Sprite.__init__(self)
         self.radius = 0.4 * COLLIDE_SCALE
+        self.true_radius = 0.4
         self.rect = pygame.Rect(x * COLLIDE_SCALE, y * COLLIDE_SCALE, ALMOST_ZERO * COLLIDE_SCALE, ALMOST_ZERO * COLLIDE_SCALE)
         Column.__init__(self, x=x, y=y, h=h, h_down=h_down)
+
         self.angle_w = angle_w % 360
         self.fov_w = FOW_W
         self.left_angle = (angle_w + FOW_W / 2) % 360
         self.right_angle = (angle_w - FOW_W / 2) % 360
-
         self.angle_h = angle_h
         self.fov_h = FOW_H
         self.bott_angle = angle_h - FOW_H / 2
@@ -24,16 +26,17 @@ class Player(Column, pygame.sprite.Sprite):
 
         self.in_process_of_jumping = False
         self.jump_start_time = None
-
         self.in_process_of_vertical_inertia = False
         self.vertical_inertia_start_time = None
         self.in_process_of_pre_jump = False
 
-        # self.dash_start_time = None
-
         self.speed = SPEED
         self.add_speed = 0
-        self.fridge = 0.92
+        self.fridge = 0.9
+
+        self.angle_of_attack = self.fov_w
+        self.hp = 100
+        self.damage = 10
 
     def turn(self, diff_w, diff_h):
         self.angle_w = (self.angle_w + diff_w) % 360
@@ -74,8 +77,11 @@ class Player(Column, pygame.sprite.Sprite):
                 is_intersection = False
                 self.rect.x += delta_x * COLLIDE_SCALE
                 self.rect.y += delta_y * COLLIDE_SCALE
-                if pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_circle):
-                    is_intersection = True
+                touched_objects = pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_circle)
+                if touched_objects:
+                    for obj in touched_objects:
+                        if self.h_down <= obj.h_down + obj.h and self.h_down + self.h >= obj.h_down:
+                            is_intersection = True
                 self.rect.x -= delta_x * COLLIDE_SCALE
                 self.rect.y -= delta_y * COLLIDE_SCALE
                 if not is_intersection:
@@ -101,9 +107,46 @@ class Player(Column, pygame.sprite.Sprite):
             return delta_x, delta_y
         return 0, 0
 
-    def hit(self):
-        pass
-        # TODO: сделать тут все
+    def hit(self, floor):
+        for obj in floor.object_list:
+            if isinstance(obj, Enemy):
+                # чтобы объект был в зоне атаки, он должен быть:
+                #   на достаточно близком расстоянии
+                dist = find_dist(self, obj) - self.true_radius - obj.true_radius
+                if not dist <= ATTACK_DIST:
+                    continue
+
+                #   попадать в зону угла атаки
+                angle = find_angle_point(self, obj)
+                delta_angle = min(
+                    max(angle, self.angle_w) - min(angle, self.angle_w),
+                    360 - (max(angle, self.angle_w) - min(angle, self.angle_w)),
+                )
+                if not delta_angle <= self.angle_of_attack / 2:
+                    continue
+
+                #   не должен находиться за стеной
+                attack_vector = Line_segment(self, obj)
+                is_intersection = False
+                for build in floor.build_list:
+                    for wall in build.wall_list:
+                        intersection = attack_vector.find_intersection(wall)
+                        if intersection:
+                            # хз как просчитывать урон, если враг и игрок на разной высоте
+
+                            # if (self.h_down <= intersection.column.h_down + intersection.column.h
+                            # ) and (self.h_down + self.h >= intersection.column.h_down):
+                            #     is_intersection = True
+                            #     self.add_speed = 0
+                            #     break
+                            is_intersection = True
+                            break
+                    if is_intersection:
+                        break
+                if is_intersection:
+                    continue
+
+                obj.take_damage(self.damage)
 
     def fly(self, direction, fps):
         if fps != 0:
@@ -138,7 +181,6 @@ class Player(Column, pygame.sprite.Sprite):
         if self.in_process_of_jumping:
             t = pygame.time.get_ticks() / 1000 - self.jump_start_time
             h_down = JUMP_SPEED * t - (g_const * t ** 2) / 2
-            # h = math.sin(math.radians())
             if h_down < 0:
                 h_down = 0
                 self.in_process_of_jumping = False
@@ -172,3 +214,5 @@ class Player(Column, pygame.sprite.Sprite):
                 self.add_speed *= self.fridge
         if self.add_speed < 1:
             self.add_speed = 0
+        if self.add_speed > 20:
+            self.add_speed = 20

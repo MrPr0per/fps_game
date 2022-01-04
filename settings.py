@@ -18,7 +18,7 @@ ALMOST_ZERO = 10 ** -5
 ALMOST_INFINITY = 10 ** 5
 
 # raycast
-FOW_W = 90
+FOW_W = 120
 FOW_H = int(FOW_W * HEIGHT / WIDTH)
 SCALE_N_RAYS = 1/7
 NUM_RAYS = int(WIDTH * SCALE_N_RAYS)
@@ -30,6 +30,13 @@ DRAW_ALL_WALS = True
 FISH_EYE = False
 TEXTURING = True
 SHADE_TEXTURES = True
+SHADE_OBJECTS = False
+
+# боевка
+ATTACK_DIST = 3
+
+# minimap
+MINIMAP_SCALE = 20
 
 # костыли
 COLLIDE_SCALE = 10000000

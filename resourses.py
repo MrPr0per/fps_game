@@ -29,8 +29,8 @@ BASE_OBJECT = 'BASE_OBJECT'
 TOFLUND = 'TOFLUND'
 BAGGEBO = 'BAGGEBO'
 # названия поз:
-FRONT = 'FRONT'
-REAR = 'REAR'
+# FRONT = 'FRONT'
+# REAR = 'REAR'
 DEAD = 'DEAD'
 # названия анимаций
 ROTATION = 'ROTATION'
@@ -48,9 +48,12 @@ objects_sprites = {
         },
         BAGGEBO: {
             ROTATION: [
-                # возможно неправильная загрузка
-                pygame.image.load(f'resourses/objects/enemies/baggebo/baggebo{i}.png').convert_alpha() for i in range(1, 9)
+                pygame.image.load(f'resourses/objects/enemies/baggebo/rotation/baggebo{i}.png').convert_alpha() for i in range(1, 9)
             ],
+            ATTACK: [
+                pygame.image.load(f'resourses/objects/enemies/baggebo/attack/baggebo{i}.png').convert_alpha() for i in range(1, 10)
+            ],
+            DEAD: pygame.image.load(f'resourses/objects/enemies/baggebo/baggebo_dead.png').convert_alpha()
         },
     },
 }
