@@ -5,8 +5,21 @@ import time
 
 import debug
 from settings import *
-from geometric_classes import Ray, Line_segment, Point, Line, Column
-from resourses import textures
+from geometry import Ray, Line_segment, Point, Line, Column
+from geometry import find_dist, find_angle_point
+from resourses import *
+from enemy import *
+
+
+class Object_to_draw:
+    IMAGE = 'IMAGE'
+    RECT = 'RECT'
+
+    def __init__(self, obj, pos, dist, type_object=IMAGE):
+        self.obj = obj
+        self.pos = pos
+        self.dist = dist
+        self.type_object = type_object
 
 
 class Drawing:
@@ -20,120 +33,11 @@ class Drawing:
         self.sc = sc
         self.clock = clock
         self.font_fps = pygame.font.SysFont('Arial', 36, bold=True)
-        self.font_info = pygame.font.SysFont('Lucida Console', 15)
+        self.font_info = pygame.font.SysFont('Lucida Console', 15, bold=True)
+        self.all_object_to_draw = []
 
     def clear_screen(self):
         self.sc.fill((0, 0, 0))
-
-    def draw_raycast(self):
-        debug.debug_first_ray = False
-        for ray_number in range(NUM_RAYS):
-            cur_angle = self.player.left_angle - ray_number * DELTA_ANGLE
-            ray = Ray(self.player, cur_angle)
-            nearest_intersection = None
-            list_intersections = []
-            for build in self.floor.build_list:
-                for wall in build.wall_list:
-                    intersection = ray.find_intersection(wall)
-                    if intersection:
-                        intersection.texture_name = build.texture_name
-                        if DRAW_ALL_WALS:
-                            list_intersections.append(intersection)
-                        if nearest_intersection:
-                            if intersection.dist < nearest_intersection.dist:
-                                nearest_intersection = intersection
-                        else:
-                            nearest_intersection = intersection
-
-            if nearest_intersection:
-                if DRAW_ALL_WALS:
-                    list_intersections = sorted(list_intersections, key=lambda x: x.dist,
-                                                reverse=True)
-                    for intersection in list_intersections:
-                        draw_column(intersection=intersection,
-                                    player=self.player, cur_angle=cur_angle, sc=self.sc,
-                                    ray_number=ray_number)
-                else:
-                    draw_column(intersection=nearest_intersection,
-                                player=self.player, cur_angle=cur_angle, sc=self.sc,
-                                ray_number=ray_number)
-
-    def draw_raycast_alt_version(self):
-        # тут какой то странны баг с отрисовкой, когда находишься близко к стене
-        for i in range(NUM_RAYS):
-            cur_angle = self.player.left_angle - i * DELTA_ANGLE
-            ray = Ray(self.player, cur_angle)
-            min_dist = None
-            nearest_intersection = None
-            for build in self.floor.build_list:
-                for wall in build.wall_list:
-                    intersection = ray.find_intersection(wall)
-                    if intersection:
-                        dist = math.hypot(intersection.x - self.player.x,
-                                          intersection.y - self.player.y)
-                        if min_dist:
-                            if dist < min_dist:
-                                min_dist = dist
-                                nearest_intersection = intersection
-                        else:
-                            min_dist = dist
-                            nearest_intersection = intersection
-
-            if min_dist and nearest_intersection:
-                if debug.DEBUG:
-                    print('debug')
-                    debug.DEBUG = False
-                # min_dist *= math.cos(math.radians(self.player.angle_w - cur_angle))
-
-                #       в виде сбоку:
-
-                # определяем отрезок экрана
-                dist_to_border = 0.5 * WIDTH / math.sin(math.radians(FOW_W / 2))
-                full_h = self.player.h_down + self.player.h
-                top_border_point = Point(
-                    0 + math.cos(math.radians(self.player.top_angle)) * dist_to_border,
-                    full_h + math.sin(math.radians(self.player.top_angle)) * dist_to_border, )
-                bott_border_point = Point(
-                    0 + math.cos(math.radians(self.player.bott_angle)) * dist_to_border,
-                    full_h + math.sin(math.radians(self.player.bott_angle)) * dist_to_border, )
-                screen = Line(top_border_point, bott_border_point)
-
-                # определяем лучи от головы игрока до верхней и нижней точек column
-                ray_bott = Ray(Point(0, full_h), find_angle_point(Point(0, full_h), Point(min_dist,
-                                                                                          nearest_intersection.h_down)))
-                ray_top = Ray(Point(0, full_h), find_angle_point(Point(0, full_h), Point(min_dist,
-                                                                                         nearest_intersection.h)))
-
-                # определяем их пересечения с экраном
-                intersection_bott = ray_bott.find_intersection(screen)
-                intersection_top = ray_top.find_intersection(screen)
-
-                # определяем расстояние от верхней точки экрана до пересечений
-                dist_top = find_dist(top_border_point, intersection_top)
-                dist_bott = find_dist(top_border_point, intersection_bott)
-
-                # определяем знак
-                angle_screen = find_angle_point(top_border_point, bott_border_point)
-                angle_top = find_angle_point(top_border_point, intersection_top)
-                angle_bott = find_angle_point(top_border_point, intersection_bott)
-                if not (angle_top - 5 < angle_screen < angle_top + 5):
-                    dist_top *= -1
-                if not (angle_bott - 5 < angle_screen < angle_bott + 5):
-                    dist_bott *= -1
-                visual_height = dist_bott - dist_top
-
-                # отрисовка
-                color = pygame.Color(0)
-                smooth = 5
-                brightness = 100 * smooth / (min_dist + smooth)
-                try:
-                    color.hsva = (0, 0, brightness)
-                except Exception:
-                    print(brightness)
-
-                pygame.draw.rect(self.sc, color, (
-                    int(i / SCALE_N_RAYS), int(dist_top), int(COLUMN_WIDTH),
-                    int(visual_height)))
 
     def draw_horizon(self):
         # dist =
@@ -183,11 +87,141 @@ class Drawing:
 
             angular_size_h_down = angle_point - angle_border_point
             screen_h_down = HEIGHT * angular_size_h_down / self.player.fov_h
-            color = find_color(dist, 228, 50)
+            color = find_color(dist, base_color=((110, 175, 219)))
 
             pygame.draw.rect(self.sc, color,
                              (0, HEIGHT - screen_h_down, WIDTH, screen_h_down - last_h + 1))
             last_h = screen_h_down
+
+    def draw_world(self):
+        self.calculate_raycast()
+        self.calculate_objects()
+        self.all_object_to_draw.sort(key=lambda x: x.dist, reverse=True)
+        for obj in self.all_object_to_draw:
+            self.sc.blit(obj.obj, obj.pos)
+        self.all_object_to_draw.clear()
+
+    def calculate_raycast(self):
+        debug.debug_first_ray = False
+        for ray_number in range(NUM_RAYS):
+            cur_angle = self.player.left_angle - ray_number * DELTA_ANGLE
+            ray = Ray(self.player, cur_angle)
+            nearest_intersection = None
+            list_intersections = []
+            for build in self.floor.build_list:
+                for wall in build.wall_list:
+                    intersection = ray.find_intersection(wall)
+                    if intersection:
+                        intersection.texture_name = build.texture_name
+                        if DRAW_ALL_WALS:
+                            list_intersections.append(intersection)
+                        if nearest_intersection:
+                            if intersection.dist < nearest_intersection.dist:
+                                nearest_intersection = intersection
+                        else:
+                            nearest_intersection = intersection
+            if nearest_intersection:
+                if DRAW_ALL_WALS:
+                    # list_intersections = sorted(list_intersections, key=lambda x: x.dist,
+                    #                             reverse=True)
+                    for intersection in list_intersections:
+                        obj = draw_column(dist=intersection.dist, column=intersection.column,
+                                          texture_name=intersection.texture_name,
+                                          offset=intersection.offset,
+                                          player=self.player, cur_angle=cur_angle, sc=self.sc)
+                        self.all_object_to_draw.append(obj)
+                else:
+                    obj = draw_column(dist=nearest_intersection.dist,
+                                      column=nearest_intersection.column,
+                                      texture_name=nearest_intersection.texture_name,
+                                      offset=nearest_intersection.offset, player=self.player,
+                                      cur_angle=cur_angle, sc=self.sc)
+                    self.all_object_to_draw.append(obj)
+
+    def calculate_objects(self):
+        for obj in self.floor.object_list:
+            angle = find_angle_point(self.player, obj)
+            # неTODO добавить подсчет этого расширения по нормальному
+            # я вообще это условие видимости вырубил лол)
+            # а я его подчистую вырезал)
+            # можно убирать туду
+            dist = find_dist(self.player, obj)
+            if dist < obj.true_radius + self.player.true_radius:
+                dist = obj.true_radius + self.player.true_radius
+            screen_h, screen_h_down = find_screen_h_and_h_down(dist, obj, self.player, self.sc)
+            if isinstance(obj, Enemy):
+                true_enemy_angle = (obj.angle - find_angle_point(self.player, obj)) % 360
+                if obj.hp > 0:
+                    if obj.in_progress_of_hit:
+                        time_now = pygame.time.get_ticks()
+                        delta_time = time_now - obj.hit_start_time
+                        index = int(
+                            delta_time / objects_sprites[ENEMIES][obj.name][ATTACK][FRAME_DELAY])
+                        if index >= len(objects_sprites[ENEMIES][obj.name][ATTACK][FRAMES]):
+                            obj.in_progress_of_hit = False
+                            obj.hit_start_time = None
+                        else:
+                            image = objects_sprites[ENEMIES][obj.name][ATTACK][FRAMES][index]
+                    if not obj.in_progress_of_hit:
+                        n_positions_to_view = len(
+                            objects_sprites[ENEMIES][obj.name][ROTATION][FRAMES])
+                        angle_of_one_position_to_view = 360 / n_positions_to_view
+                        true_enemy_angle = (true_enemy_angle - (
+                                    180 - 360 / (2 * n_positions_to_view))) % 360
+                        index = int(true_enemy_angle // angle_of_one_position_to_view)
+                        image = objects_sprites[ENEMIES][obj.name][ROTATION][FRAMES][index]
+                else:
+                    image = objects_sprites[ENEMIES][obj.name][DEAD]
+            else:
+                image = obj.image
+
+            screen_w = image.get_width() * screen_h / image.get_height()
+            if self.player.left_angle < angle:
+                x = ((self.player.left_angle + 180) % 360 - (
+                        angle + 180) % 360) / self.player.fov_w * WIDTH
+            else:
+                x = (self.player.left_angle - angle) / self.player.fov_w * WIDTH
+            y = HEIGHT - screen_h_down - screen_h
+            obj_screen_crd = (x, y)
+            obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2, obj_screen_crd[1])
+
+            if not (y < HEIGHT or y + image.get_height() > 0 or
+                    x + image.get_width() < 0 or x > WIDTH):
+                continue
+
+            image = pygame.transform.scale(image, (screen_w, screen_h))
+
+            if SHADE_OBJECTS:
+                brightness = find_brightness(dist)
+                shade = pygame.Surface((image.get_width(), image.get_height())).convert_alpha()
+                shade.fill((0, 0, 0, 255 * (1 - brightness)))
+                mask = image
+                shade.blit(mask, (0, 0), None, pygame.BLEND_RGBA_MULT)
+                image.blit(shade, (0, 0))
+
+            self.all_object_to_draw.append(Object_to_draw(image, obj_screen_crd, dist))
+
+    def draw_player(self):
+        scale = 5
+        if self.player.in_progress_of_hit:
+            time_now = pygame.time.get_ticks()
+            delta_time = time_now - self.player.hit_start_time
+            index = int(delta_time / objects_sprites[PLAYER][ATTACK][FRAME_DELAY])
+            if index >= len(objects_sprites[PLAYER][ATTACK][FRAMES]):
+                self.player.in_progress_of_hit = False
+                self.player.hit_start_time = None
+                image = objects_sprites[PLAYER][DEFAULT]
+                self.player.already_hit_in_the_current_animation_cycle = False
+            else:
+                if index == 4 and not self.player.already_hit_in_the_current_animation_cycle:
+                    self.player.already_hit_in_the_current_animation_cycle = True
+                    self.player.hit(self.floor)
+                image = objects_sprites[PLAYER][ATTACK][FRAMES][index]
+        else:
+            image = objects_sprites[PLAYER][DEFAULT]
+        image = pygame.transform.scale(image, (image.get_width() * scale, image.get_height() * scale))
+        screen_pos = (HALF_WIDTH - image.get_width() / 2, HEIGHT - image.get_height())
+        self.sc.blit(image, screen_pos)
 
     def draw_minimap(self):
         self.minimap.sc.fill((0, 0, 0))
@@ -206,9 +240,37 @@ class Drawing:
         pygame.draw.line(self.minimap.sc, (100, 100, 100), (0, self.minimap.CENTER_H),
                          (self.minimap.WIDTH, self.minimap.CENTER_H))
 
+        # объекты
+        for obj in self.floor.object_list:
+            # image = pygame.transform.scale(obj.image, (obj.w * self.minimap.SCALE,
+            #                                            obj.h * self.minimap.SCALE))
+            # obj_screen_crd = convert_crds_to_scren(*obj.pos, self.player, self.minimap)
+            # obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2,
+            #                   obj_screen_crd[1] - image.get_height() / 2)
+            # self.minimap.sc.blit(image, obj_screen_crd)
+
+            obj_screen_crd = convert_crds_to_scren(*obj.pos, self.player, self.minimap)
+            if isinstance(obj, Enemy):
+                if obj.hp > 0:
+                    color = (240, 0, 0)
+                else:
+                    color = (100, 0, 10)
+                pygame.draw.line(self.minimap.sc, color, obj_screen_crd,
+                                 convert_crds_to_scren(
+                                     obj.x + math.cos(math.radians(
+                                         obj.angle)) * obj.radius / COLLIDE_SCALE * 1.5,
+                                     obj.y + math.sin(math.radians(
+                                         obj.angle)) * obj.radius / COLLIDE_SCALE * 1.5,
+                                     self.player, self.minimap), 3)
+            else:
+                color = (150, 150, 50)
+            pygame.draw.circle(self.minimap.sc, color, obj_screen_crd,
+                               obj.w / 2 * self.minimap.SCALE)
+
         # игрок
         screen_player_crd = convert_crds_to_scren(*self.player.pos, self.player, self.minimap)
-        pygame.draw.circle(self.minimap.sc, (100, 200, 0), screen_player_crd, 7)
+        pygame.draw.circle(self.minimap.sc, (100, 200, 0), screen_player_crd,
+                           self.player.radius / COLLIDE_SCALE * self.minimap.SCALE)
         pygame.draw.line(self.minimap.sc, (100, 200, 0), screen_player_crd,
                          convert_crds_to_scren(
                              self.player.x + math.cos(
@@ -230,13 +292,13 @@ class Drawing:
                              self.player.y + math.sin(
                                  math.radians(self.player.angle_w)) * MAX_DIST_RAY,
                              self.player, self.minimap))
-        for i in range(NUM_RAYS):
-            angle = self.player.left_angle - i * DELTA_ANGLE
-            pygame.draw.line(self.minimap.sc, (100, 100, 0), screen_player_crd,
-                             convert_crds_to_scren(
-                                 self.player.x + math.cos(math.radians(angle)) * MAX_DIST_RAY,
-                                 self.player.y + math.sin(math.radians(angle)) * MAX_DIST_RAY,
-                                 self.player, self.minimap))
+        # for i in range(NUM_RAYS):
+        #     angle = self.player.left_angle - i * DELTA_ANGLE
+        #     pygame.draw.line(self.minimap.sc, (100, 100, 0), screen_player_crd,
+        #                      convert_crds_to_scren(
+        #                          self.player.x + math.cos(math.radians(angle)) * MAX_DIST_RAY,
+        #                          self.player.y + math.sin(math.radians(angle)) * MAX_DIST_RAY,
+        #                          self.player, self.minimap))
         # карта
         for build in self.floor.build_list:
             for point in build.column_list:
@@ -266,13 +328,19 @@ class Drawing:
         render = self.font_fps.render(str(fps), False, color)
         self.sc.blit(render, FPS_POS)
 
-    def draw_info(self):
+    def draw_interface(self):
+        max_len_hp_bar = 300
+        width_hp_bar = 15
+        pygame.draw.rect(sc, (100, 0, 0), (30, 20, max_len_hp_bar, width_hp_bar))
+        pygame.draw.rect(sc, (200, 50, 0), (30, 20, max_len_hp_bar * (self.player.hp / self.player.max_xp), width_hp_bar))
+
         text_list = [
             f'add_speed = {self.player.add_speed}',
+            f'already_hit_in_the_current_animation_cycle = {self.player.already_hit_in_the_current_animation_cycle}'
         ]
         for i in range(len(text_list)):
-            render = self.font_info.render(text_list[i], False, (0, 200, 200))
-            self.sc.blit(render, (0, 20 + 20 * i))
+            render = self.font_info.render(text_list[i], False, (0, 50, 50))
+            self.sc.blit(render, (10, (HEIGHT - len(text_list) * 20 - 20) + 20 * i))
 
 
 def convert_crds_to_scren(x, y, player, minimap):
@@ -280,35 +348,22 @@ def convert_crds_to_scren(x, y, player, minimap):
             y - player.y) * minimap.SCALE
 
 
-def find_angle_point(player, point):
-    dist = find_dist(player, point)
-    if dist == 0:
-        dist = ALMOST_ZERO
-    sin_angle = (point.y - player.y) / dist
-    cos_angle = (point.x - player.x) / dist
-    angle = math.degrees(math.acos(cos_angle))
-    if sin_angle < 0:
-        angle = 360 - angle
-    return angle
-
-
-def find_dist(point1, point2):
-    return math.hypot(point1.x - point2.x, point1.y - point2.y)
-
-
-def find_color(dist, hue=0, value=0):
-    color = pygame.Color(0)
-    smooth = 10
-    # brightness = 100 - 100 * smooth / (dist + smooth)
-    brightness = 100 * find_brightness(dist)
-    color.hsva = (hue, value, brightness)
+def find_color(dist, texture_name=None, base_color=(255, 255, 255)):
+    brightness = find_brightness(dist)
+    if texture_name:
+        if texture_name != TEXT_MISSING:
+            base_color = textures[texture_name].get_at((0, 0))
+        else:
+            base_color = (255, 255, 255)
+    color = [int(brightness * base_color[i]) for i in range(3)]
     return color
 
 
 def find_brightness(dist):
-    smooth = 1/500
+    smooth = 1 / 500
     brightness = 1 / (1 + smooth * dist ** 2)
     return brightness
+
 
 def correcting_angle(angle):
     """эта функция нужна, чтобы значения угла были не от 0 до 360, а в нужном диапазоне
@@ -322,15 +377,15 @@ def correcting_angle(angle):
     return angle
 
 
-def find_screen_h_and_h_down(dist, intersection, player, sc):
+def find_screen_h_and_h_down(dist, column, player, sc):
     # находим углы ключевых точек
     angle_top_point = find_angle_point(
         Point(0, player.h_down + player.h),
-        Point(dist, intersection.column.h_down + intersection.column.h))
+        Point(dist, column.h_down + column.h))
 
     angle_bott_point = -360 + find_angle_point(
         Point(0, player.h_down + player.h),
-        Point(dist, intersection.column.h_down))
+        Point(dist, column.h_down))
 
     angle_border_point = player.bott_angle
 
@@ -363,43 +418,55 @@ def find_screen_h_and_h_down(dist, intersection, player, sc):
     return screen_h, screen_h_down
 
 
-def draw_column(intersection, player, cur_angle, sc, ray_number):
+def draw_column(dist, column, texture_name, offset, player, cur_angle, sc):
     # убираем эффект рыбьего глаза
     if not FISH_EYE:
-        intersection.dist *= math.cos(math.radians(player.angle_w - cur_angle))
+        dist *= math.cos(math.radians(player.angle_w - cur_angle))
+
+    # пусть это условие создает визуальные баги, если
+    # уткнуться носом в стену, но зато фпс не падает до 15!
+    if dist < player.true_radius + 1:
+        dist = player.true_radius + 1
 
     # находим экранную высоту стены и ее экранное расстояние над землей
-    screen_h, screen_h_down = find_screen_h_and_h_down(intersection.dist, intersection, player, sc)
+    screen_h, screen_h_down = find_screen_h_and_h_down(dist, column, player, sc)
+
+    if player.left_angle < cur_angle:
+        x = ((player.left_angle + 180) % 360 - (cur_angle + 180) % 360) / player.fov_w * WIDTH
+    else:
+        x = (player.left_angle - cur_angle) / player.fov_w * WIDTH
+    y = HEIGHT - screen_h_down - screen_h
 
     if not TEXTURING:
         # определяем цвет в зависимости от расстояния
-        color = find_color(intersection.dist)
-        pygame.draw.rect(sc, color, (
-            ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h, COLUMN_WIDTH,
-            screen_h))
-    if TEXTURING:
-        if debug.DEBUG:
-            print('ddddddddddddd')
-        brightness = find_brightness(intersection.dist)
-        texture = textures[intersection.texture_name]
+        color = find_color(dist, texture_name=texture_name)
+        # print(color)
+        texture = pygame.Surface((COLUMN_WIDTH + 1, screen_h))
+        texture.fill(color)
+        return Object_to_draw(texture, (x, y), dist)
+    elif TEXTURING:
+        brightness = find_brightness(dist)
+        texture = textures[texture_name]
         texture_scale = texture.get_height() / screen_h
         width_texture = texture.get_width()
-        screen_offset = screen_h * intersection.offset / intersection.column.h
-
+        screen_offset = screen_h * offset / column.h
         try:
             texture = texture.subsurface(
                 (screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0,
-                COLUMN_WIDTH * texture_scale, texture.get_height())
-            texture = pygame.transform.scale(texture, (COLUMN_WIDTH, screen_h))
+                COLUMN_WIDTH * texture_scale + 1, texture.get_height())
+            texture = pygame.transform.scale(texture, (COLUMN_WIDTH + 1, screen_h))
             if SHADE_TEXTURES:
-                for y in range(texture.get_height()):
-                    for x in range(texture.get_width()):
-                        color = texture.get_at((x, y))
-                        color = (color[0] * brightness, color[1] * brightness, color[2] * brightness)
-                        texture.set_at((x, y), color)
-            sc.blit(texture, (ray_number / SCALE_N_RAYS, HEIGHT - screen_h_down - screen_h))
+                shade = pygame.Surface((texture.get_width(), texture.get_height())).convert_alpha()
+                shade.fill((0, 0, 0, 255 * (1 - brightness)))
+                texture.blit(shade, (0, 0))
+            # sc.blit(texture, (x, HEIGHT - screen_h_down - screen_h))
         except ValueError as error:
-            print(error)
+            texture = pygame.Surface((COLUMN_WIDTH + 1, screen_h))
+            texture.fill((255, 0, 255))
+            print(error, texture.get_rect(), pygame.Rect(
+                (screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0,
+                COLUMN_WIDTH * texture_scale, texture.get_height()))
+        return Object_to_draw(texture, (x, y), dist)
 
 # def calculate_perspective(point_crds, player_crds, player_angle, player_fov, screen_border_angle,
 #                           screen_size):

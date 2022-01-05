@@ -4,6 +4,7 @@ import time
 
 from settings import *
 from player import Player
+from enemy import enemies_group
 from drawing import Drawing
 from control import control
 from minimap import Minimap
@@ -14,9 +15,21 @@ pygame.init()
 clock = pygame.time.Clock()
 
 player = Player()
-floor = floors.load_floor(15)
+floor = floors.load_floor(18)
 minimap = Minimap()
 drawing = Drawing(clock, player, floor, minimap)
+
+#             тз:
+#
+# requirements.txt          .
+# стартовое окно            .
+# Финальное окно            .
+# подсчет результатов       .
+# спрайты                   OK
+# collide                   OK
+# анимация                  .
+# 3+ уровней                .
+# хранение данных           .
 
 while True:
 
@@ -24,12 +37,14 @@ while True:
 
     drawing.clear_screen()
     drawing.draw_horizon()
-    drawing.draw_raycast()
+    drawing.draw_world()
+    drawing.draw_player()
     drawing.draw_minimap()
     drawing.draw_fps()
-    drawing.draw_info()
+    drawing.draw_interface()
 
     player.update(clock.get_fps())
+    enemies_group.update(player, floor, clock.get_fps())
 
     pygame.display.update()
     clock.tick(FPS)

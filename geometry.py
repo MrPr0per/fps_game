@@ -43,7 +43,6 @@ class Intersection():
         self.dist = dist
 
 
-
 class Line_segment:
     def __init__(self, point1, point2):
         self.point1 = point1
@@ -153,5 +152,22 @@ class Build:
 
 
 class Floor:
-    def __init__(self, build_list):
+    def __init__(self, build_list, object_list=[]):
         self.build_list = build_list
+        self.object_list = object_list
+
+
+def find_angle_point(player, point):
+    dist = find_dist(player, point)
+    if dist == 0:
+        dist = ALMOST_ZERO
+    sin_angle = (point.y - player.y) / dist
+    cos_angle = (point.x - player.x) / dist
+    angle = math.degrees(math.acos(cos_angle))
+    if sin_angle < 0:
+        angle = 360 - angle
+    return angle
+
+
+def find_dist(point1, point2):
+    return math.hypot(point1.x - point2.x, point1.y - point2.y)

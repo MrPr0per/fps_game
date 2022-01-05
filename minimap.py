@@ -4,7 +4,7 @@ from settings import *
 
 class Minimap:
     def __init__(self):
-        self.SCALE = 5
+        self.SCALE = MINIMAP_SCALE
         self.LINE_SCALE = self.SCALE
         self.WIDTH = 300
         self.HEIGHT = 300
