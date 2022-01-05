@@ -3,8 +3,8 @@ import pygame
 from settings import *
 import debug
 from enemy import objects_group, Enemy
-from geometric_classes import Column, Line_segment, Point
-from drawing import find_dist, find_angle_point
+from geometry import Column, Line_segment, Point
+from geometry import find_dist, find_angle_point
 
 
 class Player(Column, pygame.sprite.Sprite):
@@ -34,9 +34,15 @@ class Player(Column, pygame.sprite.Sprite):
         self.add_speed = 0
         self.fridge = 0.9
 
-        self.angle_of_attack = self.fov_w
-        self.hp = 100
+        self.angle_of_attack = 180
+        self.max_xp = 100
+        self.hp = self.max_xp
         self.damage = 10
+        self.in_progress_of_hit = False
+        self.hit_start_time = None
+        # нужно, чтобы удар не засчитывался 10 раз за 1 кадр унамации
+        # (урон производится во время определенного кадра анимации)
+        self.already_hit_in_the_current_animation_cycle = False
 
     def turn(self, diff_w, diff_h):
         self.angle_w = (self.angle_w + diff_w) % 360
@@ -107,6 +113,13 @@ class Player(Column, pygame.sprite.Sprite):
             return delta_x, delta_y
         return 0, 0
 
+    def start_hit(self):
+        if self.in_progress_of_hit:
+            return
+
+        self.in_progress_of_hit = True
+        self.hit_start_time = pygame.time.get_ticks()
+
     def hit(self, floor):
         for obj in floor.object_list:
             if isinstance(obj, Enemy):
@@ -147,6 +160,12 @@ class Player(Column, pygame.sprite.Sprite):
                     continue
 
                 obj.take_damage(self.damage)
+
+    def take_damage(self, damage):
+        self.hp -= damage
+        if self.hp <= 0:
+            self.hp = 0
+            # TODO: создать смерть
 
     def fly(self, direction, fps):
         if fps != 0:

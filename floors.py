@@ -1,4 +1,4 @@
-from geometric_classes import Floor, Build, Column
+from geometry import Floor, Build, Column
 import math
 from settings import *
 from resourses import *
@@ -1216,6 +1216,12 @@ def load_floor(num_floor):
             Build(column_list=[
                 Column(0, 100, 1, 0),
                 Column(100, 100, 100, 0),
+            ], is_closed=False, texture_name=TEXT_MISSING),
+            Build(column_list=[
+                Column(16, 5, 3, 0),
+                Column(15, 5, 3, 0),
+                Column(15, -5, 3, 0),
+                Column(16, -5, 3, 0),
             ], is_closed=False, texture_name=TEXT_MISSING),
         ], object_list=[
             Baggebo(x=0.01, y=5.63, angle=13),

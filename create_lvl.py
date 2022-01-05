@@ -1,7 +1,7 @@
 import pygame
 import math
 import random
-from geometric_classes import Floor, Build, Column, Point
+from geometry import Floor, Build, Column, Point
 from resourses import *
 from enemy import *
 from drawing import find_angle_point

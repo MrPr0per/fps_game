@@ -2,8 +2,10 @@ from ctypes import *
 import math
 
 # screen
-WIDTH = int(windll.user32.GetSystemMetrics(0) * 0.8)
-HEIGHT = int(windll.user32.GetSystemMetrics(1) * 0.8)
+# WIDTH = int(windll.user32.GetSystemMetrics(0) * 0.8)
+# HEIGHT = int(windll.user32.GetSystemMetrics(1) * 0.8)
+WIDTH = 16 * 110
+HEIGHT = 9 * 110
 HALF_WIDTH = WIDTH // 2
 HALF_HEIGHT = HEIGHT // 2
 
@@ -18,7 +20,7 @@ ALMOST_ZERO = 10 ** -5
 ALMOST_INFINITY = 10 ** 5
 
 # raycast
-FOW_W = 120
+FOW_W = 90
 FOW_H = int(FOW_W * HEIGHT / WIDTH)
 SCALE_N_RAYS = 1/7
 NUM_RAYS = int(WIDTH * SCALE_N_RAYS)
@@ -33,10 +35,11 @@ SHADE_TEXTURES = True
 SHADE_OBJECTS = False
 
 # боевка
-ATTACK_DIST = 3
+ATTACK_DIST = 4
+ENABLE_AI_ENEMIES = True
 
 # minimap
-MINIMAP_SCALE = 20
+MINIMAP_SCALE = 10
 
 # костыли
 COLLIDE_SCALE = 10000000

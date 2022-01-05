@@ -5,7 +5,8 @@ import time
 
 import debug
 from settings import *
-from geometric_classes import Ray, Line_segment, Point, Line, Column
+from geometry import Ray, Line_segment, Point, Line, Column
+from geometry import find_dist, find_angle_point
 from resourses import *
 from enemy import *
 
@@ -32,7 +33,7 @@ class Drawing:
         self.sc = sc
         self.clock = clock
         self.font_fps = pygame.font.SysFont('Arial', 36, bold=True)
-        self.font_info = pygame.font.SysFont('Lucida Console', 15)
+        self.font_info = pygame.font.SysFont('Lucida Console', 15, bold=True)
         self.all_object_to_draw = []
 
     def clear_screen(self):
@@ -140,30 +141,35 @@ class Drawing:
     def calculate_objects(self):
         for obj in self.floor.object_list:
             angle = find_angle_point(self.player, obj)
-            # TODO добавить подсчет этого расширения по нормальному
+            # неTODO добавить подсчет этого расширения по нормальному
             # я вообще это условие видимости вырубил лол)
-
-            # expansion = 90
-            # # условие видимости
-            # if (self.player.left_angle + expansion > angle > self.player.right_angle - expansion) \
-            #         or (
-            #         (self.player.left_angle + expansion + 180) % 360 >
-            #         (angle + 180) % 360 >
-            #         (self.player.right_angle - expansion + 180) % 360) or True:
-
+            # а я его подчистую вырезал)
+            # можно убирать туду
             dist = find_dist(self.player, obj)
             if dist < obj.true_radius + self.player.true_radius:
                 dist = obj.true_radius + self.player.true_radius
             screen_h, screen_h_down = find_screen_h_and_h_down(dist, obj, self.player, self.sc)
-            # если объект - враг, отрисовать его с нужного ракурса
             if isinstance(obj, Enemy):
                 true_enemy_angle = (obj.angle - find_angle_point(self.player, obj)) % 360
                 if obj.hp > 0:
-                    n_positions_to_view = len(objects_sprites[ENEMIES][obj.name][ROTATION])
-                    angle_of_one_position_to_view = 360 / n_positions_to_view
-                    true_enemy_angle = (true_enemy_angle - (180 - 360 / (2 * n_positions_to_view))) % 360
-                    index = int(true_enemy_angle // angle_of_one_position_to_view)
-                    image = objects_sprites[ENEMIES][obj.name][ROTATION][index]
+                    if obj.in_progress_of_hit:
+                        time_now = pygame.time.get_ticks()
+                        delta_time = time_now - obj.hit_start_time
+                        index = int(
+                            delta_time / objects_sprites[ENEMIES][obj.name][ATTACK][FRAME_DELAY])
+                        if index >= len(objects_sprites[ENEMIES][obj.name][ATTACK][FRAMES]):
+                            obj.in_progress_of_hit = False
+                            obj.hit_start_time = None
+                        else:
+                            image = objects_sprites[ENEMIES][obj.name][ATTACK][FRAMES][index]
+                    if not obj.in_progress_of_hit:
+                        n_positions_to_view = len(
+                            objects_sprites[ENEMIES][obj.name][ROTATION][FRAMES])
+                        angle_of_one_position_to_view = 360 / n_positions_to_view
+                        true_enemy_angle = (true_enemy_angle - (
+                                    180 - 360 / (2 * n_positions_to_view))) % 360
+                        index = int(true_enemy_angle // angle_of_one_position_to_view)
+                        image = objects_sprites[ENEMIES][obj.name][ROTATION][FRAMES][index]
                 else:
                     image = objects_sprites[ENEMIES][obj.name][DEAD]
             else:
@@ -179,7 +185,8 @@ class Drawing:
             obj_screen_crd = (x, y)
             obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2, obj_screen_crd[1])
 
-            if not (y < HEIGHT or y + image.get_height() > 0 or x + image.get_width() < 0 or x > WIDTH):
+            if not (y < HEIGHT or y + image.get_height() > 0 or
+                    x + image.get_width() < 0 or x > WIDTH):
                 continue
 
             image = pygame.transform.scale(image, (screen_w, screen_h))
@@ -193,6 +200,28 @@ class Drawing:
                 image.blit(shade, (0, 0))
 
             self.all_object_to_draw.append(Object_to_draw(image, obj_screen_crd, dist))
+
+    def draw_player(self):
+        scale = 5
+        if self.player.in_progress_of_hit:
+            time_now = pygame.time.get_ticks()
+            delta_time = time_now - self.player.hit_start_time
+            index = int(delta_time / objects_sprites[PLAYER][ATTACK][FRAME_DELAY])
+            if index >= len(objects_sprites[PLAYER][ATTACK][FRAMES]):
+                self.player.in_progress_of_hit = False
+                self.player.hit_start_time = None
+                image = objects_sprites[PLAYER][DEFAULT]
+                self.player.already_hit_in_the_current_animation_cycle = False
+            else:
+                if index == 4 and not self.player.already_hit_in_the_current_animation_cycle:
+                    self.player.already_hit_in_the_current_animation_cycle = True
+                    self.player.hit(self.floor)
+                image = objects_sprites[PLAYER][ATTACK][FRAMES][index]
+        else:
+            image = objects_sprites[PLAYER][DEFAULT]
+        image = pygame.transform.scale(image, (image.get_width() * scale, image.get_height() * scale))
+        screen_pos = (HALF_WIDTH - image.get_width() / 2, HEIGHT - image.get_height())
+        self.sc.blit(image, screen_pos)
 
     def draw_minimap(self):
         self.minimap.sc.fill((0, 0, 0))
@@ -299,34 +328,24 @@ class Drawing:
         render = self.font_fps.render(str(fps), False, color)
         self.sc.blit(render, FPS_POS)
 
-    def draw_info(self):
+    def draw_interface(self):
+        max_len_hp_bar = 300
+        width_hp_bar = 15
+        pygame.draw.rect(sc, (100, 0, 0), (30, 20, max_len_hp_bar, width_hp_bar))
+        pygame.draw.rect(sc, (200, 50, 0), (30, 20, max_len_hp_bar * (self.player.hp / self.player.max_xp), width_hp_bar))
+
         text_list = [
             f'add_speed = {self.player.add_speed}',
+            f'already_hit_in_the_current_animation_cycle = {self.player.already_hit_in_the_current_animation_cycle}'
         ]
         for i in range(len(text_list)):
-            render = self.font_info.render(text_list[i], False, (0, 200, 200))
-            self.sc.blit(render, (0, 20 + 20 * i))
+            render = self.font_info.render(text_list[i], False, (0, 50, 50))
+            self.sc.blit(render, (10, (HEIGHT - len(text_list) * 20 - 20) + 20 * i))
 
 
 def convert_crds_to_scren(x, y, player, minimap):
     return minimap.WIDTH / 2 + (x - player.x) * minimap.SCALE, minimap.HEIGHT / 2 - (
             y - player.y) * minimap.SCALE
-
-
-def find_angle_point(player, point):
-    dist = find_dist(player, point)
-    if dist == 0:
-        dist = ALMOST_ZERO
-    sin_angle = (point.y - player.y) / dist
-    cos_angle = (point.x - player.x) / dist
-    angle = math.degrees(math.acos(cos_angle))
-    if sin_angle < 0:
-        angle = 360 - angle
-    return angle
-
-
-def find_dist(point1, point2):
-    return math.hypot(point1.x - point2.x, point1.y - point2.y)
 
 
 def find_color(dist, texture_name=None, base_color=(255, 255, 255)):
