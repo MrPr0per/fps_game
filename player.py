@@ -4,7 +4,7 @@ from settings import *
 import debug
 from enemy import objects_group, Enemy
 from geometry import Column, Line_segment, Point
-from geometry import find_dist, find_angle_point
+from geometry import find_dist, find_angle_point, is_the_point_in_the_field_of_view
 
 
 class Player(Column, pygame.sprite.Sprite):
@@ -130,12 +130,7 @@ class Player(Column, pygame.sprite.Sprite):
                     continue
 
                 #   попадать в зону угла атаки
-                angle = find_angle_point(self, obj)
-                delta_angle = min(
-                    max(angle, self.angle_w) - min(angle, self.angle_w),
-                    360 - (max(angle, self.angle_w) - min(angle, self.angle_w)),
-                )
-                if not delta_angle <= self.angle_of_attack / 2:
+                if not is_the_point_in_the_field_of_view(self, self.angle_w, self.angle_of_attack, obj):
                     continue
 
                 #   не должен находиться за стеной

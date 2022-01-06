@@ -4,7 +4,7 @@ import random
 from geometry import Floor, Build, Column, Point
 from resourses import *
 from enemy import *
-from drawing import find_angle_point
+from geometry import find_angle_point
 from floors import load_floor
 import debug
 
@@ -223,17 +223,6 @@ def event_processing(CENTER_W, CENTER_H, SCALE, line_scale, H, H_DOWN, ENABLE_HE
                     print(f'\t{type_obj}(x={round(obj.x, 2)}, y={round(obj.y, 2)}, angle={round(obj.angle) % 360}),')
                 print('])')
 
-                # ], is_closed=False, texture_name=TEXT_KILL),
-                #             # Build(column_list=[
-                #             #     Column(0, 10, 2, 0),
-                #             #     Column(1.9, 10, 2, 0),
-                #             # ], is_closed=False, texture_name=TEXT_GRADIENT),
-                #         ], object_list=[
-                #             Object(0, 18, 1, 0.5),
-                #             Baggebo(x=0, y=13, angle=270),
-                #
-                #         ])
-
             if event.key == pygame.K_m:
                 build_list = editable_floor.build_list.copy()
                 for build in build_list:
@@ -355,8 +344,8 @@ if __name__ == '__main__':
     brush = brush_list[0]
 
     # build_list = [[False, []]]
-    editable_floor = Floor(build_list=[Build(column_list=[], is_closed=False)], object_list=[])
-    # editable_floor = load_floor(17)
+    # editable_floor = Floor(build_list=[Build(column_list=[], is_closed=False)], object_list=[])
+    editable_floor = load_floor(20)
 
     while True:
         CENTER_W, CENTER_H, \

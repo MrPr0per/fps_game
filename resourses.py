@@ -12,6 +12,8 @@ TEXT_MISSING = 'TEXT_MISSING'
 TEXT_GRADIENT = 'TEXT_GRADIENT'
 TEXT_A = 'TEXT_A'
 TEXT_KILL = 'TEXT_KILL'
+TEXT_STONE = 'TEXT_STONE'
+TEXT_FIN = 'TEXT_FIN'
 textures = {
     TEXT_ILLUSION_1:    pygame.image.load('resourses/textures/illusion1.png').convert(),
     TEXT_1:             pygame.image.load('resourses/textures/texture1.png').convert(),
@@ -20,6 +22,8 @@ textures = {
     TEXT_GRADIENT:      pygame.image.load('resourses/textures/gradient.png').convert(),
     TEXT_A:             pygame.image.load('resourses/textures/a.png').convert(),
     TEXT_KILL:          pygame.image.load('resourses/textures/kill256.png').convert(),
+    TEXT_STONE:         pygame.image.load('resourses/textures/stone.png').convert(),
+    TEXT_FIN:           pygame.image.load('resourses/textures/fin.png').convert(),
 }
 
 # названия категорий

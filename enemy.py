@@ -1,7 +1,8 @@
 import pygame
 from geometry import Column
 from resourses import *
-from geometry import find_angle_point, find_dist
+from geometry import find_angle_point, find_dist, is_the_point_in_the_field_of_view, \
+    is_there_a_dot_behind_the_wall
 from geometry import Line_segment, Point
 
 objects_group = pygame.sprite.Group()
@@ -52,8 +53,8 @@ class Enemy(Object):
     def run(self, fps, player, floor):
         if fps != 0:
             time = 1 / fps
-            speed = player.add_speed + 5
-            # speed = 2
+            # speed = player.add_speed + 5
+            speed = 20
             dist = speed * time
 
             delta_x = math.cos(math.radians(self.angle)) * dist
@@ -89,28 +90,13 @@ class Enemy(Object):
     def does_he_see_player(self, player, floor):
         # враг увидит игрока, если:
         #   игрок в его поле зрения
-        angle_to_player = find_angle_point(self, player)
-        delta_angle = min(
-            max(angle_to_player, self.angle) - min(angle_to_player, self.angle),
-            360 - (max(angle_to_player, self.angle) - min(angle_to_player, self.angle)),
-        )
-        in_sight = delta_angle <= self.fow / 2
-        if not in_sight:
+        if not is_the_point_in_the_field_of_view(self, self.angle, self.fow, player):
             return False
 
         # между ним и игроком нет стен:
-        view_vector = Line_segment(self, player)
-        behind_the_wall = False
-        for build in floor.build_list:
-            for wall in build.wall_list:
-                intersection = view_vector.find_intersection(wall)
-                if intersection:
-                    behind_the_wall = True
-                    break
-            if behind_the_wall:
-                break
-        if behind_the_wall:
+        if is_there_a_dot_behind_the_wall(self, player, floor.build_list):
             return False
+
         return True
 
     def update(self, player, floor, fps):
@@ -118,14 +104,15 @@ class Enemy(Object):
         if not (self.hp > 0 and ENABLE_AI_ENEMIES):
             return
         self.sees_the_player = self.does_he_see_player(player, floor)
-        if self.sees_the_player:
-            self.angle = find_angle_point(self, player)
-            dist = find_dist(self, player)
-            if dist > self.true_radius + player.true_radius + 1:
-                self.run(fps, player, floor)
-            if dist < ATTACK_DIST:
-                if not self.in_progress_of_hit:
-                    self.hit(player)
+        if not self.sees_the_player:
+            return
+        self.angle = find_angle_point(self, player)
+        dist = find_dist(self, player)
+        if dist > self.true_radius + player.true_radius + 1:
+            self.run(fps, player, floor)
+        if dist < ATTACK_DIST:
+            if not self.in_progress_of_hit:
+                self.hit(player)
 
 
 class Toflund(Enemy):
@@ -144,7 +131,7 @@ class Baggebo(Enemy):
         h = 1.5
         h_down = 0
         hp = 1
-        damage = 10
+        damage = 3
         fow = 90
         name = BAGGEBO
         super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, fow=fow, hp=hp, damage=damage, name=name)

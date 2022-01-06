@@ -1,12 +1,11 @@
 import pygame
 import math
-from numba import njit, jit
 import time
 
 import debug
 from settings import *
 from geometry import Ray, Line_segment, Point, Line, Column
-from geometry import find_dist, find_angle_point
+from geometry import find_dist, find_angle_point, is_the_point_in_the_field_of_view
 from resourses import *
 from enemy import *
 
@@ -24,6 +23,7 @@ class Object_to_draw:
 
 class Drawing:
     def __init__(self, clock, player, floor, minimap):
+        # sc = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
         sc = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('fps v0.0.2')
         pygame.mouse.set_visible(False)
@@ -38,6 +38,7 @@ class Drawing:
 
     def clear_screen(self):
         self.sc.fill((0, 0, 0))
+        self.minimap.sc.fill((0, 0, 0))
 
     def draw_horizon(self):
         # dist =
@@ -145,10 +146,42 @@ class Drawing:
             # я вообще это условие видимости вырубил лол)
             # а я его подчистую вырезал)
             # можно убирать туду
+            # ок, теперь без этого условия у меня лагает, придется писать
+            # написал, все равно лагает >:/
+            left_offset_angle = (find_angle_point(self.player, obj) + 90) % 360
+            inaccuracy = 0.2
+            left_border_point = Point(
+                obj.x + math.cos(math.radians(left_offset_angle)) * (obj.true_radius + inaccuracy),
+                obj.y + math.sin(math.radians(left_offset_angle)) * (obj.true_radius + inaccuracy))
+            right_border_point = Point(
+                obj.x - math.cos(math.radians(left_offset_angle)) * (obj.true_radius + inaccuracy),
+                obj.y - math.sin(math.radians(left_offset_angle)) * (obj.true_radius + inaccuracy))
+
+            if not (is_the_point_in_the_field_of_view(
+                    self.player, self.player.angle_w, self.player.fov_w, left_border_point) or
+                    is_the_point_in_the_field_of_view(
+                        self.player, self.player.angle_w, self.player.fov_w, right_border_point)):
+                continue
+            if not DRAW_ALL_OBJECTS:
+                is_left_behind_wall = is_there_a_dot_behind_the_wall(self.player, left_border_point, self.floor.build_list)
+                is_right_behind_wall = is_there_a_dot_behind_the_wall(self.player, right_border_point, self.floor.build_list)
+                if is_left_behind_wall and is_right_behind_wall:
+                    continue
+
+            pygame.draw.circle(self.minimap.sc, (0, 255, 255),
+                               convert_crds_to_scren(*obj.pos, self.player, self.minimap),
+                               obj.w / 2 * self.minimap.SCALE * 2)
+
             dist = find_dist(self.player, obj)
+            if not FISH_EYE:
+                dist *= math.cos(math.radians(self.player.angle_w - find_angle_point(self.player, obj)))
+
+            # ограничиваем дистанцию, чтобы объекты не были слишком большими и не лагало
             if dist < obj.true_radius + self.player.true_radius:
                 dist = obj.true_radius + self.player.true_radius
+
             screen_h, screen_h_down = find_screen_h_and_h_down(dist, obj, self.player, self.sc)
+
             if isinstance(obj, Enemy):
                 true_enemy_angle = (obj.angle - find_angle_point(self.player, obj)) % 360
                 if obj.hp > 0:
@@ -167,7 +200,7 @@ class Drawing:
                             objects_sprites[ENEMIES][obj.name][ROTATION][FRAMES])
                         angle_of_one_position_to_view = 360 / n_positions_to_view
                         true_enemy_angle = (true_enemy_angle - (
-                                    180 - 360 / (2 * n_positions_to_view))) % 360
+                                180 - 360 / (2 * n_positions_to_view))) % 360
                         index = int(true_enemy_angle // angle_of_one_position_to_view)
                         image = objects_sprites[ENEMIES][obj.name][ROTATION][FRAMES][index]
                 else:
@@ -181,13 +214,9 @@ class Drawing:
                         angle + 180) % 360) / self.player.fov_w * WIDTH
             else:
                 x = (self.player.left_angle - angle) / self.player.fov_w * WIDTH
+            x -= screen_w / 2
             y = HEIGHT - screen_h_down - screen_h
             obj_screen_crd = (x, y)
-            obj_screen_crd = (obj_screen_crd[0] - image.get_width() / 2, obj_screen_crd[1])
-
-            if not (y < HEIGHT or y + image.get_height() > 0 or
-                    x + image.get_width() < 0 or x > WIDTH):
-                continue
 
             image = pygame.transform.scale(image, (screen_w, screen_h))
 
@@ -202,7 +231,6 @@ class Drawing:
             self.all_object_to_draw.append(Object_to_draw(image, obj_screen_crd, dist))
 
     def draw_player(self):
-        scale = 5
         if self.player.in_progress_of_hit:
             time_now = pygame.time.get_ticks()
             delta_time = time_now - self.player.hit_start_time
@@ -219,12 +247,14 @@ class Drawing:
                 image = objects_sprites[PLAYER][ATTACK][FRAMES][index]
         else:
             image = objects_sprites[PLAYER][DEFAULT]
-        image = pygame.transform.scale(image, (image.get_width() * scale, image.get_height() * scale))
+        scale = (2 / 3 * WIDTH) / image.get_width()
+        image = pygame.transform.scale(image,
+                                       (image.get_width() * scale, image.get_height() * scale))
         screen_pos = (HALF_WIDTH - image.get_width() / 2, HEIGHT - image.get_height())
         self.sc.blit(image, screen_pos)
 
     def draw_minimap(self):
-        self.minimap.sc.fill((0, 0, 0))
+        # self.minimap.sc.fill((0, 0, 0))
 
         i = self.minimap.CENTER_W % self.minimap.LINE_SCALE
         while i < self.minimap.WIDTH:
@@ -332,7 +362,8 @@ class Drawing:
         max_len_hp_bar = 300
         width_hp_bar = 15
         pygame.draw.rect(sc, (100, 0, 0), (30, 20, max_len_hp_bar, width_hp_bar))
-        pygame.draw.rect(sc, (200, 50, 0), (30, 20, max_len_hp_bar * (self.player.hp / self.player.max_xp), width_hp_bar))
+        pygame.draw.rect(sc, (200, 50, 0), (
+        30, 20, max_len_hp_bar * (self.player.hp / self.player.max_xp), width_hp_bar))
 
         text_list = [
             f'add_speed = {self.player.add_speed}',
@@ -344,8 +375,9 @@ class Drawing:
 
 
 def convert_crds_to_scren(x, y, player, minimap):
-    return minimap.WIDTH / 2 + (x - player.x) * minimap.SCALE, minimap.HEIGHT / 2 - (
-            y - player.y) * minimap.SCALE
+    screen_x = minimap.WIDTH / 2 + (x - player.x) * minimap.SCALE
+    screen_y = minimap.HEIGHT / 2 - (y - player.y) * minimap.SCALE
+    return screen_x, screen_y
 
 
 def find_color(dist, texture_name=None, base_color=(255, 255, 255)):
@@ -419,14 +451,13 @@ def find_screen_h_and_h_down(dist, column, player, sc):
 
 
 def draw_column(dist, column, texture_name, offset, player, cur_angle, sc):
-    # убираем эффект рыбьего глаза
     if not FISH_EYE:
         dist *= math.cos(math.radians(player.angle_w - cur_angle))
 
     # пусть это условие создает визуальные баги, если
     # уткнуться носом в стену, но зато фпс не падает до 15!
-    if dist < player.true_radius + 1:
-        dist = player.true_radius + 1
+    # if dist < player.true_radius + 5:
+    #     dist = player.true_radius + 5
 
     # находим экранную высоту стены и ее экранное расстояние над землей
     screen_h, screen_h_down = find_screen_h_and_h_down(dist, column, player, sc)

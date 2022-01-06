@@ -15,24 +15,29 @@ pygame.init()
 clock = pygame.time.Clock()
 
 player = Player()
-floor = floors.load_floor(18)
+floor = floors.load_floor(20)
 minimap = Minimap()
 drawing = Drawing(clock, player, floor, minimap)
 
-#             тз:
-#
-# requirements.txt          .
-# стартовое окно            .
-# Финальное окно            .
-# подсчет результатов       .
-# спрайты                   OK
-# collide                   OK
-# анимация                  .
-# 3+ уровней                .
-# хранение данных           .
+#   ▄              █▄     ▄█              ▄
+#    ▀███▄       ▄█ ▄█   █▄ █▄       ▄███▀
+#   ▄█    ▀ ▄  ▀██           ██▀  ▄ ▀    █▄
+#  █▄    ▀▄  ▀█▄▄██▄  тз:  ▄██▄▄█▀  ▄▀    ▄█
+#  ▄▀██▄█▀     ▀▀▀▀ ▀     ▀ ▀▀▀▀     ▀█▄██▀▄
+#  ▀▄▄  ▄ requirements.txt         .  ▄  ▄▄▀
+#    ▀██▀ стартовое окно           .  ▀██▀
+#  ▄ █▀   Финальное окно           .    ▀█ ▄
+#   █▄  ▄ подсчет результатов      .  ▄  ▄█
+#    ▀██  спрайты                  OK  ██▀
+#         collide                  OK
+#    ▄ ▀  анимация                 OK  ▀ ▄
+#  ▄█ ▄   3+ уровней               .    ▄ █▄
+#  ▀█▄ ▀█ хранение данных          .  █▀ ▄█▀
+#     ██    ▄  ▄▄▄  ▄     ▄  ▄▄▄  ▄    ██
+#     ▀██  █ ▄██▀▀▀▄ █▄ ▄█ ▄▀▀▀██▄ █  ██▀
+#     ▄▀██▄ █▀   ▀▄▀ ▄▀ ▀▄ ▀▄▀   ▀█ ▄██▀▄
 
 while True:
-
     control(player, clock, minimap, floor)
 
     drawing.clear_screen()

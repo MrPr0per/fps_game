@@ -1,5 +1,4 @@
 import math
-from numba import njit, jit
 
 from settings import *
 from resourses import *
@@ -171,3 +170,25 @@ def find_angle_point(player, point):
 
 def find_dist(point1, point2):
     return math.hypot(point1.x - point2.x, point1.y - point2.y)
+
+
+def is_the_point_in_the_field_of_view(viewer, viewer_angle, field_of_view, point):
+    angle = find_angle_point(viewer, point)
+    delta_angle = min(
+        max(angle, viewer_angle) - min(angle, viewer_angle),
+        360 - (max(angle, viewer_angle) - min(angle, viewer_angle)),
+    )
+    if delta_angle <= field_of_view / 2:
+        return True
+    else:
+        return False
+
+
+def is_there_a_dot_behind_the_wall(point1, point2, build_list):
+    view_vector = Line_segment(point1, point2)
+    for build in build_list:
+        for wall in build.wall_list:
+            intersection = view_vector.find_intersection(wall)
+            if intersection:
+                return True
+    return False
