@@ -4,89 +4,46 @@ from settings import *
 from resourses import *
 from enemy import *
 
+level_names = {
+    5: 'первый нормальный уровень',
+    6: 'церковь',
+    7: 'лестница в небо',
+    8: 'лол',
+    9: 'лестница в небо 2',
+    10: 'коридор',
+    11: 'пароодия на дум',
+    12: 'dust 2',
+    13: 'YOBA RACE',
+    14: 'тест текстур 1',
+    15: 'kill him 1',
+    16: 'kill him 2',
+    17: 'открытое поле 1',
+    18: 'открытое поле 2',
+    19: 'замок 1',
+    20: 'замок 2 (более просторный)',
+}
+level_nums = {
+    'первый нормальный уровень':         5,
+    'церковь':                           6,
+    'лестница в небо':                   7,
+    'лол':                               8,
+    'лестница в небо 2':                 9,
+    'коридор':                           10,
+    'пароодия на дум':                   11,
+    'dust 2':                            12,
+    'YOBA RACE':                         13,
+    'тест текстур 1':                    14,
+    'kill him 1':                        15,
+    'kill him 2':                        16,
+    'открытое поле 1':                   17,
+    'открытое поле 2':                   18,
+    'замок 1':                           19,
+    'замок 2 (более просторный)':        20,
+}
+
 
 def load_floor(num_floor):
     floor = None
-    # if num_floor == 1:
-    #     point_list = [
-    #         Point(-1, 0),
-    #         Point(1, 0),
-    #     ]
-    #     build = Build(column_list=point_list, is_closed=False)
-    #     floor = Floor(build_list=[build])
-    # if num_floor == 2:
-    #     floor = Floor(build_list=[
-    #         Build(column_list=[
-    #             Point(0, 0),
-    #             Point(1, 0),
-    #             Point(1, 1),
-    #             Point(0, 1),
-    #         ], is_closed=True),
-    #         Build(column_list=[
-    #             Point(2, 0),
-    #             Point(4, 0),
-    #             Point(3, -2),
-    #         ], is_closed=True),
-    #         Build(column_list=[
-    #             Point(5, 1),
-    #             Point(5, 0),
-    #             Point(10, 0),
-    #             Point(10, 5),
-    #             Point(5, 5),
-    #             Point(5, 4),
-    #         ], is_closed=False),
-    #     ])
-    # if num_floor == 3:
-    #     build_list = []
-    #     for i in range(-20, 20):
-    #         i *= 4
-    #         build = Build(column_list=[
-    #             Point(i, 0),
-    #             Point(i + 2, 0),
-    #             Point(i + 2, 2),
-    #             Point(i, 2),
-    #         ], is_closed=True)
-    #         build_list.append(build)
-    #     floor = Floor(build_list)
-    # if num_floor == 4:
-    #     floor = Floor(build_list=[
-    #         Build(column_list=[
-    #             Point(-1, 0),
-    #             Point(-1, -1),
-    #             Point(1, -1),
-    #             Point(1, 0),
-    #             Point(2, 0),
-    #             Point(4, 1),
-    #             Point(5, 2),
-    #             Point(6, 4),
-    #             Point(6, 6),
-    #             Point(8.8747526, 6),
-    #             Point(9, 8),
-    #             Point(2, 8),
-    #             Point(2, 6),
-    #             Point(4.8967929, 6),
-    #             Point(5, 4),
-    #             Point(4, 2),
-    #             Point(2, 1),
-    #             Point(1, 1),
-    #             Point(1, 2),
-    #             Point(-1, 2),
-    #             Point(-1, 1),
-    #         ], is_closed=False),
-    #         Build(column_list=[
-    #             Point(-1, 1),
-    #             Point(-2, 1),
-    #             Point(-2, 3),
-    #             Point(-1, 3),
-    #             Point(-1, 5),
-    #             Point(-3, 5),
-    #             Point(-3, 3),
-    #             Point(-2.5598684000000023, 3),
-    #             Point(-2.543763300000002, 1),
-    #             Point(-2.5598684000000023, 0),
-    #             Point(-1, 0),
-    #         ], is_closed=False),
-    #     ])
     if num_floor == 5:
         floor = Floor(build_list=[
             Build(column_list=[
@@ -618,7 +575,6 @@ def load_floor(num_floor):
                 Column(-3, n * 4, 1, 0),
             ], is_closed=False)
         )
-
     if num_floor == 11:
         floor = Floor(build_list=[
             Build(column_list=[
@@ -1653,5 +1609,4 @@ def load_floor(num_floor):
             Baggebo(x=-15.89, y=-3.58, angle=315),
             Baggebo(x=-17.33, y=-2.08, angle=141),
         ])
-
     return floor

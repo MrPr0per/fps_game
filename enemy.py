@@ -24,16 +24,18 @@ class Object(Column, pygame.sprite.Sprite):
         self.true_radius = self.w / 2
         self.rect = pygame.Rect(x * COLLIDE_SCALE, y * COLLIDE_SCALE, ALMOST_ZERO * COLLIDE_SCALE,
                                 ALMOST_ZERO * COLLIDE_SCALE)
+        self.is_collide = True
 
 
 class Enemy(Object):
-    def __init__(self, x, y, h, h_down, angle, fow, hp, damage, name):
+    def __init__(self, x, y, h, h_down, angle, fow, hp, damage, name, speed):
         super().__init__(x=x, y=y, h=h, h_down=h_down, name=name)
         enemies_group.add(self)
         self.angle = angle
         self.fow = fow
         self.hp = hp
         self.damage = damage
+        self.speed = speed
 
         self.sees_the_player = False
         self.run_to_player = False
@@ -49,12 +51,14 @@ class Enemy(Object):
             self.hp = 0
             objects_group.remove(self)
             self.h_down = 0
+            self.is_collide = False
 
     def run(self, fps, player, floor):
         if fps != 0:
             time = 1 / fps
             # speed = player.add_speed + 5
-            speed = 20
+            # speed = 20
+            speed = self.speed
             dist = speed * time
 
             delta_x = math.cos(math.radians(self.angle)) * dist
@@ -108,9 +112,9 @@ class Enemy(Object):
             return
         self.angle = find_angle_point(self, player)
         dist = find_dist(self, player)
-        if dist > self.true_radius + player.true_radius + 1:
+        if dist > self.true_radius + player.true_radius + 1 and not self.in_progress_of_hit:
             self.run(fps, player, floor)
-        if dist < ATTACK_DIST:
+        if dist < ENEMY_ATTACK_DIST:
             if not self.in_progress_of_hit:
                 self.hit(player)
 
@@ -120,10 +124,11 @@ class Toflund(Enemy):
         h = 3
         h_down = 0
         hp = 1
-        damage = 10
+        damage = 1
         fow = 90
         name = TOFLUND
-        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, fow=fow, hp=hp, damage=damage, name=name)
+        speed = 3
+        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, fow=fow, hp=hp, damage=damage, name=name, speed=speed)
 
 
 class Baggebo(Enemy):
@@ -134,4 +139,5 @@ class Baggebo(Enemy):
         damage = 3
         fow = 90
         name = BAGGEBO
-        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, fow=fow, hp=hp, damage=damage, name=name)
+        speed = 20
+        super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, fow=fow, hp=hp, damage=damage, name=name, speed=speed)

@@ -89,3 +89,9 @@ objects_sprites = {
         },
     },
 }
+
+
+class Main_menu_sprites:
+    background = pygame.image.load('resourses/menu/background2.png').convert()
+    logo = pygame.image.load('resourses/menu/logo.png').convert_alpha()
+    cursor = pygame.image.load('resourses/menu/cursor2.png').convert_alpha()

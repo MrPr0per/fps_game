@@ -81,15 +81,11 @@ class Player(Column, pygame.sprite.Sprite):
 
             if COLLISION:
                 is_intersection = False
-                self.rect.x += delta_x * COLLIDE_SCALE
-                self.rect.y += delta_y * COLLIDE_SCALE
-                touched_objects = pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_circle)
-                if touched_objects:
-                    for obj in touched_objects:
-                        if self.h_down <= obj.h_down + obj.h and self.h_down + self.h >= obj.h_down:
+                for obj in floor.object_list:
+                    if obj.is_collide:
+                        d = find_dist(Point(self.x + delta_x, self.y + delta_y), obj)
+                        if d <= self.true_radius + obj.true_radius:
                             is_intersection = True
-                self.rect.x -= delta_x * COLLIDE_SCALE
-                self.rect.y -= delta_y * COLLIDE_SCALE
                 if not is_intersection:
                     for build in floor.build_list:
                         for wall in build.wall_list:
@@ -126,7 +122,7 @@ class Player(Column, pygame.sprite.Sprite):
                 # чтобы объект был в зоне атаки, он должен быть:
                 #   на достаточно близком расстоянии
                 dist = find_dist(self, obj) - self.true_radius - obj.true_radius
-                if not dist <= ATTACK_DIST:
+                if not dist <= PLAYER_ATTACK_DIST:
                     continue
 
                 #   попадать в зону угла атаки

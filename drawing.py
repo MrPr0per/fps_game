@@ -22,13 +22,11 @@ class Object_to_draw:
 
 
 class Drawing:
-    def __init__(self, clock, player, floor, minimap):
+    def __init__(self, clock, minimap, sc):
         # sc = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
-        sc = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption('fps v0.0.2')
+        # sc = pygame.display.set_mode((WIDTH, HEIGHT))
+        # pygame.display.set_caption('fps v0.0.2')
         pygame.mouse.set_visible(False)
-        self.player = player
-        self.floor = floor
         self.minimap = minimap
         self.sc = sc
         self.clock = clock
@@ -40,31 +38,7 @@ class Drawing:
         self.sc.fill((0, 0, 0))
         self.minimap.sc.fill((0, 0, 0))
 
-    def draw_horizon(self):
-        # dist =
-        # n = 180
-        # angle_point = find_angle_point(
-        #     Point(0, self.player.h_down + self.player.h),
-        #     Point(dist, 0))
-        # if angle_point > n:
-        #     angle_point -= 360
-        #
-        # angle_border_point = self.player.bott_angle
-        # if angle_border_point > n:
-        #     angle_border_point -= 360
-        #
-        # angular_size_h_down = angle_point - angle_border_point
-        # screen_h_down = HEIGHT * angular_size_h_down / self.player.fov_h
-        # color = pygame.Color(0)
-        # smooth = 5
-        # brightness = 100 * smooth / (dist + smooth)
-        # try:
-        #     color.hsva = (100, 70, brightness)
-        # except Exception:
-        #     print(brightness)
-        #
-        # pygame.draw.rect(self.sc, color,
-        #                  (0, HEIGHT - screen_h_down, WIDTH, screen_h_down))
+    def draw_horizon(self, player):
         step = 10
         for i in range(0, HEIGHT, step):
             color = (i / HEIGHT * 255, 50, (HEIGHT - i) / HEIGHT * 255)
@@ -77,39 +51,39 @@ class Drawing:
             dist = i / SMOOTHING_HORIZON
             n = 180
             angle_point = find_angle_point(
-                Point(0, self.player.h_down + self.player.h),
+                Point(0, player.h_down + player.h),
                 Point(dist, 0))
             if angle_point > n:
                 angle_point -= 360
 
-            angle_border_point = self.player.bott_angle
+            angle_border_point = player.bott_angle
             if angle_border_point > n:
                 angle_border_point -= 360
 
             angular_size_h_down = angle_point - angle_border_point
-            screen_h_down = HEIGHT * angular_size_h_down / self.player.fov_h
+            screen_h_down = HEIGHT * angular_size_h_down / player.fov_h
             color = find_color(dist, base_color=((110, 175, 219)))
 
             pygame.draw.rect(self.sc, color,
                              (0, HEIGHT - screen_h_down, WIDTH, screen_h_down - last_h + 1))
             last_h = screen_h_down
 
-    def draw_world(self):
-        self.calculate_raycast()
-        self.calculate_objects()
+    def draw_world(self, player, floor):
+        self.calculate_raycast(player, floor)
+        self.calculate_objects(player, floor)
         self.all_object_to_draw.sort(key=lambda x: x.dist, reverse=True)
         for obj in self.all_object_to_draw:
             self.sc.blit(obj.obj, obj.pos)
         self.all_object_to_draw.clear()
 
-    def calculate_raycast(self):
+    def calculate_raycast(self, player, floor):
         debug.debug_first_ray = False
         for ray_number in range(NUM_RAYS):
-            cur_angle = self.player.left_angle - ray_number * DELTA_ANGLE
-            ray = Ray(self.player, cur_angle)
+            cur_angle = player.left_angle - ray_number * DELTA_ANGLE
+            ray = Ray(player, cur_angle)
             nearest_intersection = None
             list_intersections = []
-            for build in self.floor.build_list:
+            for build in floor.build_list:
                 for wall in build.wall_list:
                     intersection = ray.find_intersection(wall)
                     if intersection:
@@ -123,32 +97,30 @@ class Drawing:
                             nearest_intersection = intersection
             if nearest_intersection:
                 if DRAW_ALL_WALS:
-                    # list_intersections = sorted(list_intersections, key=lambda x: x.dist,
-                    #                             reverse=True)
                     for intersection in list_intersections:
                         obj = draw_column(dist=intersection.dist, column=intersection.column,
                                           texture_name=intersection.texture_name,
                                           offset=intersection.offset,
-                                          player=self.player, cur_angle=cur_angle, sc=self.sc)
+                                          player=player, cur_angle=cur_angle, sc=self.sc)
                         self.all_object_to_draw.append(obj)
                 else:
                     obj = draw_column(dist=nearest_intersection.dist,
                                       column=nearest_intersection.column,
                                       texture_name=nearest_intersection.texture_name,
-                                      offset=nearest_intersection.offset, player=self.player,
+                                      offset=nearest_intersection.offset, player=player,
                                       cur_angle=cur_angle, sc=self.sc)
                     self.all_object_to_draw.append(obj)
 
-    def calculate_objects(self):
-        for obj in self.floor.object_list:
-            angle = find_angle_point(self.player, obj)
+    def calculate_objects(self, player, floor):
+        for obj in floor.object_list:
+            angle = find_angle_point(player, obj)
             # неTODO добавить подсчет этого расширения по нормальному
             # я вообще это условие видимости вырубил лол)
             # а я его подчистую вырезал)
             # можно убирать туду
             # ок, теперь без этого условия у меня лагает, придется писать
             # написал, все равно лагает >:/
-            left_offset_angle = (find_angle_point(self.player, obj) + 90) % 360
+            left_offset_angle = (find_angle_point(player, obj) + 90) % 360
             inaccuracy = 0.2
             left_border_point = Point(
                 obj.x + math.cos(math.radians(left_offset_angle)) * (obj.true_radius + inaccuracy),
@@ -158,32 +130,32 @@ class Drawing:
                 obj.y - math.sin(math.radians(left_offset_angle)) * (obj.true_radius + inaccuracy))
 
             if not (is_the_point_in_the_field_of_view(
-                    self.player, self.player.angle_w, self.player.fov_w, left_border_point) or
+                    player, player.angle_w, player.fov_w, left_border_point) or
                     is_the_point_in_the_field_of_view(
-                        self.player, self.player.angle_w, self.player.fov_w, right_border_point)):
+                        player, player.angle_w, player.fov_w, right_border_point)):
                 continue
             if not DRAW_ALL_OBJECTS:
-                is_left_behind_wall = is_there_a_dot_behind_the_wall(self.player, left_border_point, self.floor.build_list)
-                is_right_behind_wall = is_there_a_dot_behind_the_wall(self.player, right_border_point, self.floor.build_list)
+                is_left_behind_wall = is_there_a_dot_behind_the_wall(player, left_border_point, floor.build_list)
+                is_right_behind_wall = is_there_a_dot_behind_the_wall(player, right_border_point, floor.build_list)
                 if is_left_behind_wall and is_right_behind_wall:
                     continue
 
             pygame.draw.circle(self.minimap.sc, (0, 255, 255),
-                               convert_crds_to_scren(*obj.pos, self.player, self.minimap),
+                               convert_crds_to_scren(*obj.pos, player, self.minimap),
                                obj.w / 2 * self.minimap.SCALE * 2)
 
-            dist = find_dist(self.player, obj)
+            dist = find_dist(player, obj)
             if not FISH_EYE:
-                dist *= math.cos(math.radians(self.player.angle_w - find_angle_point(self.player, obj)))
+                dist *= math.cos(math.radians(player.angle_w - find_angle_point(player, obj)))
 
             # ограничиваем дистанцию, чтобы объекты не были слишком большими и не лагало
-            if dist < obj.true_radius + self.player.true_radius:
-                dist = obj.true_radius + self.player.true_radius
+            if dist < obj.true_radius + player.true_radius:
+                dist = obj.true_radius + player.true_radius
 
-            screen_h, screen_h_down = find_screen_h_and_h_down(dist, obj, self.player, self.sc)
+            screen_h, screen_h_down = find_screen_h_and_h_down(dist, obj, player, self.sc)
 
             if isinstance(obj, Enemy):
-                true_enemy_angle = (obj.angle - find_angle_point(self.player, obj)) % 360
+                true_enemy_angle = (obj.angle - find_angle_point(player, obj)) % 360
                 if obj.hp > 0:
                     if obj.in_progress_of_hit:
                         time_now = pygame.time.get_ticks()
@@ -209,11 +181,11 @@ class Drawing:
                 image = obj.image
 
             screen_w = image.get_width() * screen_h / image.get_height()
-            if self.player.left_angle < angle:
-                x = ((self.player.left_angle + 180) % 360 - (
-                        angle + 180) % 360) / self.player.fov_w * WIDTH
+            if player.left_angle < angle:
+                x = ((player.left_angle + 180) % 360 - (
+                        angle + 180) % 360) / player.fov_w * WIDTH
             else:
-                x = (self.player.left_angle - angle) / self.player.fov_w * WIDTH
+                x = (player.left_angle - angle) / player.fov_w * WIDTH
             x -= screen_w / 2
             y = HEIGHT - screen_h_down - screen_h
             obj_screen_crd = (x, y)
@@ -230,20 +202,20 @@ class Drawing:
 
             self.all_object_to_draw.append(Object_to_draw(image, obj_screen_crd, dist))
 
-    def draw_player(self):
-        if self.player.in_progress_of_hit:
+    def draw_player(self, player, floor):
+        if player.in_progress_of_hit:
             time_now = pygame.time.get_ticks()
-            delta_time = time_now - self.player.hit_start_time
+            delta_time = time_now - player.hit_start_time
             index = int(delta_time / objects_sprites[PLAYER][ATTACK][FRAME_DELAY])
             if index >= len(objects_sprites[PLAYER][ATTACK][FRAMES]):
-                self.player.in_progress_of_hit = False
-                self.player.hit_start_time = None
+                player.in_progress_of_hit = False
+                player.hit_start_time = None
                 image = objects_sprites[PLAYER][DEFAULT]
-                self.player.already_hit_in_the_current_animation_cycle = False
+                player.already_hit_in_the_current_animation_cycle = False
             else:
-                if index == 4 and not self.player.already_hit_in_the_current_animation_cycle:
-                    self.player.already_hit_in_the_current_animation_cycle = True
-                    self.player.hit(self.floor)
+                if index == 4 and not player.already_hit_in_the_current_animation_cycle:
+                    player.already_hit_in_the_current_animation_cycle = True
+                    player.hit(floor)
                 image = objects_sprites[PLAYER][ATTACK][FRAMES][index]
         else:
             image = objects_sprites[PLAYER][DEFAULT]
@@ -253,7 +225,7 @@ class Drawing:
         screen_pos = (HALF_WIDTH - image.get_width() / 2, HEIGHT - image.get_height())
         self.sc.blit(image, screen_pos)
 
-    def draw_minimap(self):
+    def draw_minimap(self, player, floor):
         # self.minimap.sc.fill((0, 0, 0))
 
         i = self.minimap.CENTER_W % self.minimap.LINE_SCALE
@@ -271,7 +243,7 @@ class Drawing:
                          (self.minimap.WIDTH, self.minimap.CENTER_H))
 
         # объекты
-        for obj in self.floor.object_list:
+        for obj in floor.object_list:
             # image = pygame.transform.scale(obj.image, (obj.w * self.minimap.SCALE,
             #                                            obj.h * self.minimap.SCALE))
             # obj_screen_crd = convert_crds_to_scren(*obj.pos, self.player, self.minimap)
@@ -279,7 +251,7 @@ class Drawing:
             #                   obj_screen_crd[1] - image.get_height() / 2)
             # self.minimap.sc.blit(image, obj_screen_crd)
 
-            obj_screen_crd = convert_crds_to_scren(*obj.pos, self.player, self.minimap)
+            obj_screen_crd = convert_crds_to_scren(*obj.pos, player, self.minimap)
             if isinstance(obj, Enemy):
                 if obj.hp > 0:
                     color = (240, 0, 0)
@@ -291,51 +263,44 @@ class Drawing:
                                          obj.angle)) * obj.radius / COLLIDE_SCALE * 1.5,
                                      obj.y + math.sin(math.radians(
                                          obj.angle)) * obj.radius / COLLIDE_SCALE * 1.5,
-                                     self.player, self.minimap), 3)
+                                     player, self.minimap), 3)
             else:
                 color = (150, 150, 50)
             pygame.draw.circle(self.minimap.sc, color, obj_screen_crd,
                                obj.w / 2 * self.minimap.SCALE)
 
         # игрок
-        screen_player_crd = convert_crds_to_scren(*self.player.pos, self.player, self.minimap)
+        screen_player_crd = convert_crds_to_scren(*player.pos, player, self.minimap)
         pygame.draw.circle(self.minimap.sc, (100, 200, 0), screen_player_crd,
-                           self.player.radius / COLLIDE_SCALE * self.minimap.SCALE)
+                           player.radius / COLLIDE_SCALE * self.minimap.SCALE)
         pygame.draw.line(self.minimap.sc, (100, 200, 0), screen_player_crd,
                          convert_crds_to_scren(
-                             self.player.x + math.cos(
-                                 math.radians(self.player.left_angle)) * MAX_DIST_RAY,
-                             self.player.y + math.sin(
-                                 math.radians(self.player.left_angle)) * MAX_DIST_RAY,
-                             self.player, self.minimap))
+                             player.x + math.cos(
+                                 math.radians(player.left_angle)) * MAX_DIST_RAY,
+                             player.y + math.sin(
+                                 math.radians(player.left_angle)) * MAX_DIST_RAY,
+                             player, self.minimap))
         pygame.draw.line(self.minimap.sc, (100, 200, 0), screen_player_crd,
                          convert_crds_to_scren(
-                             self.player.x + math.cos(
-                                 math.radians(self.player.right_angle)) * MAX_DIST_RAY,
-                             self.player.y + math.sin(
-                                 math.radians(self.player.right_angle)) * MAX_DIST_RAY,
-                             self.player, self.minimap))
+                             player.x + math.cos(
+                                 math.radians(player.right_angle)) * MAX_DIST_RAY,
+                             player.y + math.sin(
+                                 math.radians(player.right_angle)) * MAX_DIST_RAY,
+                             player, self.minimap))
         pygame.draw.line(self.minimap.sc, (200, 100, 0), screen_player_crd,
                          convert_crds_to_scren(
-                             self.player.x + math.cos(
-                                 math.radians(self.player.angle_w)) * MAX_DIST_RAY,
-                             self.player.y + math.sin(
-                                 math.radians(self.player.angle_w)) * MAX_DIST_RAY,
-                             self.player, self.minimap))
-        # for i in range(NUM_RAYS):
-        #     angle = self.player.left_angle - i * DELTA_ANGLE
-        #     pygame.draw.line(self.minimap.sc, (100, 100, 0), screen_player_crd,
-        #                      convert_crds_to_scren(
-        #                          self.player.x + math.cos(math.radians(angle)) * MAX_DIST_RAY,
-        #                          self.player.y + math.sin(math.radians(angle)) * MAX_DIST_RAY,
-        #                          self.player, self.minimap))
+                             player.x + math.cos(
+                                 math.radians(player.angle_w)) * MAX_DIST_RAY,
+                             player.y + math.sin(
+                                 math.radians(player.angle_w)) * MAX_DIST_RAY,
+                             player, self.minimap))
         # карта
-        for build in self.floor.build_list:
+        for build in floor.build_list:
             for point in build.column_list:
-                x, y = convert_crds_to_scren(*point.pos, self.player, self.minimap)
+                x, y = convert_crds_to_scren(*point.pos, player, self.minimap)
                 pygame.draw.circle(self.minimap.sc, (200, 200, 200), (x, y), 2)
             points = list(
-                map(lambda a: convert_crds_to_scren(*a.pos, self.player, self.minimap),
+                map(lambda a: convert_crds_to_scren(*a.pos, player, self.minimap),
                     build.column_list))
             # points = list(map(lambda a: (a.x, a.y), build.point_list))
             pygame.draw.lines(self.minimap.sc, (200, 200, 200), build.is_closed, points)
@@ -358,16 +323,16 @@ class Drawing:
         render = self.font_fps.render(str(fps), False, color)
         self.sc.blit(render, FPS_POS)
 
-    def draw_interface(self):
+    def draw_interface(self, player):
         max_len_hp_bar = 300
         width_hp_bar = 15
         pygame.draw.rect(sc, (100, 0, 0), (30, 20, max_len_hp_bar, width_hp_bar))
         pygame.draw.rect(sc, (200, 50, 0), (
-        30, 20, max_len_hp_bar * (self.player.hp / self.player.max_xp), width_hp_bar))
+        30, 20, max_len_hp_bar * (player.hp / player.max_xp), width_hp_bar))
 
         text_list = [
-            f'add_speed = {self.player.add_speed}',
-            f'already_hit_in_the_current_animation_cycle = {self.player.already_hit_in_the_current_animation_cycle}'
+            f'add_speed = {player.add_speed}',
+            f'already_hit_in_the_current_animation_cycle = {player.already_hit_in_the_current_animation_cycle}'
         ]
         for i in range(len(text_list)):
             render = self.font_info.render(text_list[i], False, (0, 50, 50))

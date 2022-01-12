@@ -1,5 +1,8 @@
-def factor(n):
-    return eval('*'.join(list(str(i) for i in range(1, n + 1))))
+def change(var):
+    var *= 2
 
 
-print(factor(10000))
+outer_var = 4
+print(outer_var)
+change(outer_var)
+print(outer_var)

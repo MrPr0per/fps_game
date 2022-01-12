@@ -3,8 +3,8 @@ import debug
 from settings import *
 
 
-def control(player, clock, minimap, floor):
-    sensitivity = 0.06
+def control(player, clock, minimap, floor, game_cycle):
+    sensitivity = SENSITIVITY
 
     if pygame.mouse.get_focused():
         if VERTICAL_MOVE_HEAD:
@@ -22,7 +22,9 @@ def control(player, clock, minimap, floor):
             quit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                exit()
+                game_cycle = GAME_CYCLES.MAIN_MENU
+                # pygame.quit()
+                # quit()
             if event.key == pygame.K_BACKQUOTE:  # бахропкъюуркалорукаие - это кнопка тильда
                 debug.DEBUG = True
             if not FLY_MOD:
@@ -62,6 +64,4 @@ def control(player, clock, minimap, floor):
             player.fly(UP, clock.get_fps())
         if keys[pygame.K_LSHIFT]:
             player.fly(DOWN, clock.get_fps())
-    # else:
-    #     if keys[pygame.K_SPACE]:
-    #         player.jump()
+    return game_cycle

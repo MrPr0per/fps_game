@@ -34,7 +34,7 @@ class Column(Point):
         return self.__str__()
 
 
-class Intersection():
+class Intersection:
     def __init__(self, column, offset, dist, texture_name=TEXT_MISSING):
         self.column = column
         self.offset = offset
