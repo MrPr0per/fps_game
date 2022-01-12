@@ -10,7 +10,7 @@ class Menu_panel:
         self.button_list = button_list
         self.name = name
 
-    def check_interaction(self, floor, player, menu):
+    def check_interaction(self, floor, player, menu, current_level_number):
         if self.name == Names_menu_pannels.MAIN_MENU:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -22,16 +22,16 @@ class Menu_panel:
                             if button.text == Button.Names_buttons.NEW_GAME:
                                 for obj in floor.object_list:
                                     obj.kill()
-                                return GAME_CYCLES.GAMEPLAY, load_floor(20), Player(), menu
+                                return GAME_CYCLES.GAMEPLAY, load_floor(20), Player(), menu, 20
 
                             elif button.text == Button.Names_buttons.CONTINUE:
-                                return GAME_CYCLES.GAMEPLAY, floor, player, menu
+                                return GAME_CYCLES.GAMEPLAY, floor, player, menu, current_level_number
 
                             elif button.text == Button.Names_buttons.SETTINGS:
                                 print(Button.Names_buttons.SETTINGS)
 
                             elif button.text == Button.Names_buttons.CHOOSE_LVL:
-                                return GAME_CYCLES.MAIN_MENU, floor, player, choose_lvl
+                                return GAME_CYCLES.MAIN_MENU, floor, player, choose_lvl, current_level_number
 
                             elif button.text == Button.Names_buttons.EXIT:
                                 pygame.quit()
@@ -41,7 +41,7 @@ class Menu_panel:
                     if event.key == pygame.K_ESCAPE:
                         exit()
 
-            return GAME_CYCLES.MAIN_MENU, floor, player, menu
+            # return GAME_CYCLES.MAIN_MENU, floor, player, menu, current_level_number
 
         if self.name == Names_menu_pannels.CHOOSE_LVL:
             for event in pygame.event.get():
@@ -54,13 +54,13 @@ class Menu_panel:
                             n = level_nums[button.text]
                             for obj in floor.object_list:
                                 obj.kill()
-                            return GAME_CYCLES.GAMEPLAY, load_floor(n), Player(), main_menu
+                            return GAME_CYCLES.GAMEPLAY, load_floor(n), Player(), main_menu, n
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        return GAME_CYCLES.MAIN_MENU, floor, player, main_menu
+                        return GAME_CYCLES.MAIN_MENU, floor, player, main_menu, current_level_number
 
-            return GAME_CYCLES.MAIN_MENU, floor, player, menu
+        return GAME_CYCLES.MAIN_MENU, floor, player, menu, current_level_number
 
     def draw(self, sc):
         def draw_background():

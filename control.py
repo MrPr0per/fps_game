@@ -1,9 +1,11 @@
 import pygame
 import debug
 from settings import *
+import save
+from player import Player
 
 
-def control(player, clock, minimap, floor, game_cycle):
+def control(player, clock, minimap, floor, game_cycle, current_level_number):
     sensitivity = SENSITIVITY
 
     if pygame.mouse.get_focused():
@@ -34,6 +36,14 @@ def control(player, clock, minimap, floor, game_cycle):
                 if event.key == pygame.K_LSHIFT:
                     if player.h_down == 0:
                         player.dash()
+            if event.key == pygame.K_F5:
+                save.upload_save(params={'num_floor': current_level_number})
+            if event.key == pygame.K_F8:
+                for obj in floor.object_list:
+                    obj.kill()
+                floor, current_level_number = save.download_save()
+                player = Player()
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             player.start_hit()
 
@@ -64,4 +74,4 @@ def control(player, clock, minimap, floor, game_cycle):
             player.fly(UP, clock.get_fps())
         if keys[pygame.K_LSHIFT]:
             player.fly(DOWN, clock.get_fps())
-    return game_cycle
+    return game_cycle, floor, player, current_level_number

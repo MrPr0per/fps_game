@@ -458,10 +458,10 @@ def draw_column(dist, column, texture_name, offset, player, cur_angle, sc):
             # sc.blit(texture, (x, HEIGHT - screen_h_down - screen_h))
         except ValueError as error:
             texture = pygame.Surface((COLUMN_WIDTH + 1, screen_h))
-            texture.fill((255, 0, 255))
-            print(error, texture.get_rect(), pygame.Rect(
-                (screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0,
-                COLUMN_WIDTH * texture_scale, texture.get_height()))
+            texture.fill((0, 0, 0))
+            # print(error, texture.get_rect(), pygame.Rect(
+            #     (screen_offset * texture_scale) % (width_texture - COLUMN_WIDTH * texture_scale), 0,
+            #     COLUMN_WIDTH * texture_scale, texture.get_height()))
         return Object_to_draw(texture, (x, y), dist)
 
 # def calculate_perspective(point_crds, player_crds, player_angle, player_fov, screen_border_angle,

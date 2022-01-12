@@ -11,6 +11,7 @@ from control import control
 from minimap import Minimap
 import floors
 from menu import main_menu
+from save import download_save
 
 menu = main_menu
 
@@ -22,10 +23,9 @@ pygame.display.set_caption('fps v0.1.0')
 # game_cycle = GAME_CYCLES.MAIN_MENU
 game_cycle = GAME_CYCLES.GAMEPLAY
 
-current_level_number = 20
-
 player = Player()
-floor = floors.load_floor(current_level_number)
+# floor = floors.load_floor(current_level_number)
+floor, current_level_number = download_save()
 minimap = Minimap()
 drawing = Drawing(clock, minimap, sc)
 
@@ -49,14 +49,14 @@ drawing = Drawing(clock, minimap, sc)
 
 while True:
     if game_cycle == GAME_CYCLES.MAIN_MENU:
-        game_cycle, floor, player, menu = menu.check_interaction(floor, player, menu)
+        game_cycle, floor, player, menu, current_level_number = menu.check_interaction(floor, player, menu, current_level_number)
 
         drawing.clear_screen()
         menu.draw(sc)
         drawing.draw_fps()
 
     elif game_cycle == GAME_CYCLES.GAMEPLAY:
-        game_cycle = control(player, clock, minimap, floor, game_cycle)
+        game_cycle, floor, player, current_level_number = control(player, clock, minimap, floor, game_cycle, current_level_number)
 
         drawing.clear_screen()
         drawing.draw_horizon(player)
