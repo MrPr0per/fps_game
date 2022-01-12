@@ -28,7 +28,7 @@ class Column(Point):
         super().__init__(x, y)
 
     def __str__(self):
-        return f'({self.x}, {self.y}, {self.h}, {self.h_down})'
+        return f'(x={self.x}, y={self.y}, h={self.h}, h_down{self.h_down})'
 
     def __repr__(self):
         return self.__str__()

@@ -2,6 +2,7 @@ import pygame
 import math
 import time
 
+import debug
 from settings import *
 from player import Player
 from enemy import enemies_group
