@@ -6,18 +6,6 @@ from player import Player
 
 
 def control(player, clock, minimap, floor, game_cycle, current_level_number):
-    sensitivity = SENSITIVITY
-
-    if pygame.mouse.get_focused():
-        if VERTICAL_MOVE_HEAD:
-            difference_w = pygame.mouse.get_pos()[0] - WIDTH / 2
-            difference_h = pygame.mouse.get_pos()[1] - HEIGHT / 2
-            pygame.mouse.set_pos([WIDTH / 2, HEIGHT / 2])
-            player.turn(-difference_w * sensitivity, -difference_h * sensitivity)
-        else:
-            difference_w = pygame.mouse.get_pos()[0] - WIDTH / 2
-            pygame.mouse.set_pos([WIDTH / 2, HEIGHT / 2])
-            player.turn(-difference_w * sensitivity, 0)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
