@@ -151,9 +151,11 @@ class Build:
 
 
 class Floor:
-    def __init__(self, build_list, object_list=[]):
+    def __init__(self, build_list, object_list=[], ground_color=(110, 175, 219), sky_text_num=0):
         self.build_list = build_list
         self.object_list = object_list
+        self.ground_color = ground_color
+        self.sky_text_num = sky_text_num
 
 
 def find_angle_point(player, point):

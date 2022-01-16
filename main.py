@@ -73,7 +73,7 @@ while True:
                 player.turn(-difference_w * sensitivity, 0)
 
         drawing.clear_screen()
-        drawing.draw_horizon(player)
+        drawing.draw_horizon(player, floor)
         drawing.draw_world(player, floor)
         drawing.draw_player(player, floor)
         drawing.draw_minimap(player, floor)

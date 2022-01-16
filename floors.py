@@ -1609,4 +1609,15 @@ def load_floor(num_floor):
             Baggebo(x=-15.89, y=-3.58, angle=315),
             Baggebo(x=-17.33, y=-2.08, angle=141),
         ])
+    if num_floor == 21:
+        floor = Floor(build_list=[
+            Build(column_list=[
+                Column(-4, -3, 3, 0),
+                Column(-4, 31, 3, 0),
+                Column(4, 31, 3, 0),
+                Column(4, -3, 3, 0),
+            ], is_closed=False, texture_name=TEXT_SAUSAGE),
+        ], object_list=[
+            end_lvl_crystal(0, 22)
+        ], ground_color=(200, 50, 50), sky_text_num=2)
     return floor

@@ -14,6 +14,7 @@ TEXT_A = 'TEXT_A'
 TEXT_KILL = 'TEXT_KILL'
 TEXT_STONE = 'TEXT_STONE'
 TEXT_FIN = 'TEXT_FIN'
+TEXT_SAUSAGE = 'TEXT_SAUSAGE'
 textures = {
     TEXT_ILLUSION_1:    pygame.image.load('resourses/textures/illusion1.png').convert(),
     TEXT_1:             pygame.image.load('resourses/textures/texture1.png').convert(),
@@ -24,15 +25,24 @@ textures = {
     TEXT_KILL:          pygame.image.load('resourses/textures/kill256.png').convert(),
     TEXT_STONE:         pygame.image.load('resourses/textures/stone.png').convert(),
     TEXT_FIN:           pygame.image.load('resourses/textures/fin.png').convert(),
+    TEXT_SAUSAGE:       pygame.image.load('resourses/textures/kolbasa4.png').convert(),
 }
+
+num_skys = 3
+SKYS = [pygame.image.load(f'resourses/textures/sky{i}.png').convert() for i in range(1, num_skys + 1)]
 
 # названия категорий
 ENEMIES = 'ENEMIES'
 PLAYER = 'PLAYER'
+ITEMS = 'ITEMS'
+
 # названия врагов
 BASE_OBJECT = 'BASE_OBJECT'
 TOFLUND = 'TOFLUND'
 BAGGEBO = 'BAGGEBO'
+# названия предметов
+END_LVL_CRYSTAL = 'END_LVL_CRYSTAL'
+
 # названия поз:
 DEAD = 'DEAD'
 DEFAULT = 'DEFAULT'
@@ -87,6 +97,11 @@ objects_sprites = {
             ],
             FRAME_DELAY: 1000 / 20
         },
+    },
+    ITEMS: {
+        END_LVL_CRYSTAL: {
+            DEFAULT: pygame.image.load('resourses/objects/items/end_lvl_crystal/base5.png').convert_alpha()
+        }
     },
 }
 

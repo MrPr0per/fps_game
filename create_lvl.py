@@ -344,8 +344,8 @@ if __name__ == '__main__':
     brush = brush_list[0]
 
     # build_list = [[False, []]]
-    # editable_floor = Floor(build_list=[Build(column_list=[], is_closed=False)], object_list=[])
-    editable_floor = load_floor(20)
+    editable_floor = Floor(build_list=[Build(column_list=[], is_closed=False)], object_list=[])
+    # editable_floor = load_floor(20)
 
     while True:
         CENTER_W, CENTER_H, \

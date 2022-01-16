@@ -49,9 +49,10 @@ class Player(Column, pygame.sprite.Sprite):
         self.left_angle = (self.angle_w + self.fov_w / 2) % 360
         self.right_angle = (self.angle_w - self.fov_w / 2) % 360
 
-        self.angle_h = (self.angle_h + diff_h) % 360
-        self.top_angle = (self.angle_h + self.fov_h / 2) % 360
-        self.bott_angle = (self.angle_h - self.fov_h / 2) % 360
+        if (self.angle_h + diff_h) % 360 <= (90 - self.fov_h / 2) or (self.angle_h + diff_h) % 360 >= (270 + self.fov_h / 2):
+            self.angle_h = (self.angle_h + diff_h) % 360
+            self.top_angle = (self.angle_h + self.fov_h / 2) % 360
+            self.bott_angle = (self.angle_h - self.fov_h / 2) % 360
 
     def run(self, direction, fps, floor):
         if fps != 0:

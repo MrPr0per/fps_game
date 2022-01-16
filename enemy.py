@@ -7,6 +7,7 @@ from geometry import Line_segment, Point
 
 objects_group = pygame.sprite.Group()
 enemies_group = pygame.sprite.Group()
+items_group = pygame.sprite.Group()
 
 
 class Object(Column, pygame.sprite.Sprite):
@@ -141,3 +142,22 @@ class Baggebo(Enemy):
         name = BAGGEBO
         speed = 20
         super().__init__(x=x, y=y, h=h, h_down=h_down, angle=angle, fow=fow, hp=hp, damage=damage, name=name, speed=speed)
+
+
+class Item(Object):
+    def __init__(self, x, y, h, h_down, name):
+        super().__init__(x=x, y=y, h=h, h_down=h_down, name=name)
+        items_group.add(self)
+
+    def interaction(self, floor, player):
+        # удалить этот объект с карты
+        # добавить его в инвентарь
+        pass
+
+
+class end_lvl_crystal(Item):
+    def __init__(self, x, y):
+        h = 2
+        h_down = 0
+        name = END_LVL_CRYSTAL
+        super().__init__(x, y, h, h_down, name)

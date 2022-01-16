@@ -38,35 +38,126 @@ class Drawing:
         self.sc.fill((0, 0, 0))
         self.minimap.sc.fill((0, 0, 0))
 
-    def draw_horizon(self, player):
-        step = 10
-        for i in range(0, HEIGHT, step):
-            color = (i / HEIGHT * 255, 50, (HEIGHT - i) / HEIGHT * 255)
-            # print(color)
-            self.sc.fill(color, (0, i, WIDTH, step))
+    def draw_horizon(self, player, floor):
+        # неважно, что это за строки
+        # важно, что они находят экранную высоту горизонта
+        dist = ALMOST_INFINITY
+        n = 180
+        angle_point = find_angle_point(
+            Point(0, player.h_down + player.h),
+            Point(dist, 0))
+        if angle_point > n:
+            angle_point -= 360
+        angle_border_point = player.bott_angle
+        if angle_border_point > n:
+            angle_border_point -= 360
+        angular_size_h_down = angle_point - angle_border_point
+        screen_h_down = HEIGHT * angular_size_h_down / player.fov_h
+        screen_pos_horizon = HEIGHT - screen_h_down
 
-        last_h = 0
-        for i in range(MAX_DIST_HORIZON * SMOOTHING_HORIZON):
-            # dist = ALMOST_INFINITY
-            dist = i / SMOOTHING_HORIZON
-            n = 180
-            angle_point = find_angle_point(
-                Point(0, player.h_down + player.h),
-                Point(dist, 0))
-            if angle_point > n:
-                angle_point -= 360
+        #
 
-            angle_border_point = player.bott_angle
-            if angle_border_point > n:
-                angle_border_point -= 360
+        texture = SKYS[floor.sky_text_num]
+        crop_width = texture.get_width() * (player.fov_w / 360)
+        crop_height = HEIGHT * (crop_width / WIDTH)
 
-            angular_size_h_down = angle_point - angle_border_point
-            screen_h_down = HEIGHT * angular_size_h_down / player.fov_h
-            color = find_color(dist, base_color=((110, 175, 219)))
+        offset_x = (1 - (player.angle_w / 360)) * texture.get_width()
 
+        angle = player.angle_h
+        if 0 <= angle <= 90:
+            angle_h = 90 - angle
+        if 90 < angle < 270:
+            angle_h = 0
+        if 270 <= angle <= 360:
+            angle_h = 90 - angle + 360
+        offset_y = (texture.get_height() - crop_height) / 180 * angle_h
+
+        # корректируем значение вертикального смещения:
+        h1 = texture.get_height() / 2
+        h2 = screen_pos_horizon / (WIDTH / crop_width) + offset_y
+        dh = h2 - h1
+        offset_y -= dh
+
+        # почему то экран все рано улетает за пределы всех измерений,
+        # но не слишком сильно, так что просто оставим эту корректировку
+        if offset_y < 0:
+            offset_y = 0
+        if offset_y > texture.get_height() - crop_height:
+            offset_y = texture.get_height() - crop_height
+
+        # отрисовываем картинку
+        if crop_width < texture.get_width() - offset_x:
+            texture1 = texture.subsurface(offset_x, offset_y, crop_width, crop_height)
+            texture1 = pygame.transform.scale(texture1, (WIDTH, HEIGHT))
+            sc.blit(texture1, (0, 0))
+        else:
+            texture1 = texture.subsurface(offset_x, offset_y, texture.get_width() - offset_x, crop_height)
+            texture2 = texture.subsurface(0, offset_y, crop_width - (texture.get_width() - offset_x), crop_height)
+
+            scale = WIDTH / crop_width
+            texture1 = pygame.transform.scale(texture1, (texture1.get_width() * scale + 2, HEIGHT))
+            texture2 = pygame.transform.scale(texture2, (texture2.get_width() * scale, HEIGHT))
+
+            sc.blit(texture1, (0, 0))
+            sc.blit(texture2, ((texture.get_width() - offset_x) * scale, 0))
+
+        #
+
+        # дэбаг
+        # мне жалко его стирать, так что пусть пока будет
+        show_debug_info = False
+        if show_debug_info:
+            scale_screen = 1/5
+            # схематично отрисовывем текстуру неба
+            pygame.draw.rect(sc, (255, 0, 255), (0, 0, texture.get_width() * scale_screen, texture.get_height() * scale_screen), 3)
+            # схематично отрисовывем используемую ее часть
+            pygame.draw.rect(sc, (255, 255, 0), (offset_x * scale_screen, offset_y * scale_screen, crop_width * scale_screen, crop_height * scale_screen), 3)
+
+            # схематично отрисовываем горизонт на текстуре
+            h1 = texture.get_height() / 2
+            pygame.draw.line(sc, (200, 0, 200), (0, h1 * scale_screen), (texture.get_width() * scale_screen, h1 * scale_screen), 3)
+            # схематично отрисовываем горизонт на деле
+            h2 = screen_pos_horizon / (WIDTH / crop_width) + offset_y
+            pygame.draw.line(sc, (200, 200, 0), (0, h2 * scale_screen), (texture.get_width() * scale_screen, h2 * scale_screen), 3)
+            # калькулируем их разницу
+            dh = h2 - h1
+
+            # отрисовываем линию горизонта
+            color = find_color(dist, base_color=(200, 50, 50))
             pygame.draw.rect(self.sc, color,
-                             (0, HEIGHT - screen_h_down, WIDTH, screen_h_down - last_h + 1))
-            last_h = screen_h_down
+                             (0, screen_pos_horizon, WIDTH, 5))
+            # (если она совпала с линией горизонта на тектуре, поздравляю, вы молодец)
+            # сам себя не похвалишь...
+
+        #
+
+        draw_ground = True
+        if draw_ground:
+            pygame.draw.rect(self.sc, (0, 0, 0),
+                             (0, screen_pos_horizon, WIDTH, screen_h_down))
+            last_h = 0
+            for i in range(MAX_DIST_HORIZON * SMOOTHING_HORIZON):
+                # dist = ALMOST_INFINITY
+                dist = i / SMOOTHING_HORIZON
+                n = 180
+                angle_point = find_angle_point(
+                    Point(0, player.h_down + player.h),
+                    Point(dist, 0))
+                if angle_point > n:
+                    angle_point -= 360
+
+                angle_border_point = player.bott_angle
+                if angle_border_point > n:
+                    angle_border_point -= 360
+
+                angular_size_h_down = angle_point - angle_border_point
+                screen_h_down = HEIGHT * angular_size_h_down / player.fov_h
+                # color = find_color(dist, base_color=(110, 175, 219))
+                color = find_color(dist, base_color=floor.ground_color)
+
+                pygame.draw.rect(self.sc, color,
+                                 (0, HEIGHT - screen_h_down, WIDTH, screen_h_down - last_h + 1))
+                last_h = screen_h_down
 
     def draw_world(self, player, floor):
         self.calculate_raycast(player, floor)
@@ -140,9 +231,9 @@ class Drawing:
                 if is_left_behind_wall and is_right_behind_wall:
                     continue
 
-            pygame.draw.circle(self.minimap.sc, (0, 255, 255),
-                               convert_crds_to_scren(*obj.pos, player, self.minimap),
-                               obj.w / 2 * self.minimap.SCALE * 2)
+            # pygame.draw.circle(self.minimap.sc, (0, 255, 255),
+            #                    convert_crds_to_scren(*obj.pos, player, self.minimap),
+            #                    obj.w / 2 * self.minimap.SCALE * 2)
 
             dist = find_dist(player, obj)
             if not FISH_EYE:
@@ -177,6 +268,8 @@ class Drawing:
                         image = objects_sprites[ENEMIES][obj.name][ROTATION][FRAMES][index]
                 else:
                     image = objects_sprites[ENEMIES][obj.name][DEAD]
+            elif isinstance(obj, Item):
+                image = objects_sprites[ITEMS][obj.name][DEFAULT]
             else:
                 image = obj.image
 
@@ -264,8 +357,10 @@ class Drawing:
                                      obj.y + math.sin(math.radians(
                                          obj.angle)) * obj.radius / COLLIDE_SCALE * 1.5,
                                      player, self.minimap), 3)
+            elif isinstance(obj, Item):
+                color = (200, 200, 0)
             else:
-                color = (150, 150, 50)
+                color = (50, 50, 50)
             pygame.draw.circle(self.minimap.sc, color, obj_screen_crd,
                                obj.w / 2 * self.minimap.SCALE)
 
