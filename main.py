@@ -5,7 +5,7 @@ import time
 import debug
 from settings import *
 from player import Player
-from enemy import enemies_group
+from enemy import Enemy
 from drawing import Drawing
 from control import control
 from minimap import Minimap
@@ -57,6 +57,9 @@ while True:
 
     elif game_cycle == GAME_CYCLES.GAMEPLAY:
         game_cycle, floor, player, current_level_number = control(player, clock, minimap, floor, game_cycle, current_level_number)
+
+        # аэээ не тройте этот кусок, если его выкинуть в control,
+        # на некоторых компах не будет крутиться голова
         sensitivity = SENSITIVITY
         if pygame.mouse.get_focused():
             if VERTICAL_MOVE_HEAD:
@@ -78,7 +81,9 @@ while True:
         drawing.draw_interface(player)
 
         player.update(clock.get_fps())
-        enemies_group.update(player, floor, clock.get_fps())
+        for obj in floor.object_list:
+            if isinstance(obj, Enemy):
+                obj.update(player, floor, clock.get_fps())
 
     pygame.display.update()
     clock.tick(FPS)

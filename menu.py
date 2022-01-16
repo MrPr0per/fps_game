@@ -20,8 +20,6 @@ class Menu_panel:
                     for button in self.button_list:
                         if button.rect.collidepoint(pygame.mouse.get_pos()):
                             if button.text == Button.Names_buttons.NEW_GAME:
-                                for obj in floor.object_list:
-                                    obj.kill()
                                 return GAME_CYCLES.GAMEPLAY, load_floor(20), Player(), menu, 20
 
                             elif button.text == Button.Names_buttons.CONTINUE:
@@ -52,8 +50,6 @@ class Menu_panel:
                     for button in self.button_list:
                         if button.rect.collidepoint(pygame.mouse.get_pos()):
                             n = level_nums[button.text]
-                            for obj in floor.object_list:
-                                obj.kill()
                             return GAME_CYCLES.GAMEPLAY, load_floor(n), Player(), main_menu, n
 
                 if event.type == pygame.KEYDOWN:
