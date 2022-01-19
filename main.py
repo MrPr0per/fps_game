@@ -20,8 +20,8 @@ clock = pygame.time.Clock()
 sc = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('fps v1.0.0')
 
-# game_cycle = GAME_CYCLES.MAIN_MENU
-game_cycle = GAME_CYCLES.GAMEPLAY
+game_cycle = GAME_CYCLES.MAIN_MENU
+# game_cycle = GAME_CYCLES.GAMEPLAY
 # game_cycle = GAME_CYCLES.WIN
 
 player = Player()
@@ -35,7 +35,7 @@ drawing = Drawing(clock, minimap, sc)
 #   ▄█    ▀ ▄  ▀██           ██▀  ▄ ▀    █▄
 #  █▄    ▀▄  ▀█▄▄██▄  тз:  ▄██▄▄█▀  ▄▀    ▄█
 #  ▄▀██▄█▀     ▀▀▀▀ ▀     ▀ ▀▀▀▀     ▀█▄██▀▄
-#  ▀▄▄  ▄ requirements.txt         .  ▄  ▄▄▀
+#  ▀▄▄  ▄ requirements.txt         OK ▄  ▄▄▀
 #    ▀██▀ стартовое окно           OK ▀██▀
 #  ▄ █▀   Финальное окно           OK   ▀█ ▄
 #   █▄  ▄ подсчет результатов      OK ▄  ▄█

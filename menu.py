@@ -20,7 +20,7 @@ class Menu_panel:
                     for button in self.button_list:
                         if button.rect.collidepoint(pygame.mouse.get_pos()):
                             if button.text == Button.Names_buttons.NEW_GAME:
-                                return GAME_CYCLES.GAMEPLAY, load_floor(100), Player(), menu, 20
+                                return GAME_CYCLES.GAMEPLAY, load_floor(100), Player(), menu, 100
 
                             elif button.text == Button.Names_buttons.CONTINUE:
                                 return GAME_CYCLES.GAMEPLAY, floor, player, menu, current_level_number

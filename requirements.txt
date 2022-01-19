@@ -1,0 +1,14 @@
+altgraph==0.17.2
+future==0.18.2
+llvmlite==0.37.0
+numba==0.54.1
+numpy==1.20.3
+pefile==2021.9.3
+Pillow==8.4.0
+pygame==2.0.2
+pyinstaller==4.7
+pyinstaller-hooks-contrib==2021.4
+PyQt5==5.15.4
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.9.0
+pywin32-ctypes==0.2.0
