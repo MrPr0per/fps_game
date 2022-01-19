@@ -1,15 +1,6 @@
-import pygame
-import math
-import time
-
-import debug
-from settings import *
-from player import Player
-from enemy import Enemy
 from drawing import Drawing
 from control import *
 from minimap import Minimap
-import floors
 from menu import main_menu
 from save import download_save
 
@@ -25,7 +16,6 @@ game_cycle = GAME_CYCLES.MAIN_MENU
 # game_cycle = GAME_CYCLES.WIN
 
 player = Player()
-# floor = floors.load_floor(current_level_number)
 floor, current_level_number = download_save()
 minimap = Minimap()
 drawing = Drawing(clock, minimap, sc)
@@ -54,7 +44,8 @@ flicker_start_time = pygame.time.get_ticks()
 
 while True:
     if game_cycle == GAME_CYCLES.MAIN_MENU:
-        game_cycle, floor, player, menu, current_level_number = menu.check_interaction(floor, player, menu, current_level_number)
+        game_cycle, floor, player, menu, current_level_number = \
+            menu.check_interaction(floor, player, menu, current_level_number)
 
         drawing.clear_screen()
         menu.draw(sc)
@@ -64,7 +55,8 @@ while True:
         if start_lvl_time is None:
             start_lvl_time = pygame.time.get_ticks()
 
-        game_cycle, floor, player, current_level_number, finish_lvl_time = control(player, clock, minimap, floor, game_cycle, current_level_number, finish_lvl_time)
+        game_cycle, floor, player, current_level_number, finish_lvl_time = \
+            control(player, clock, minimap, floor, game_cycle, current_level_number, finish_lvl_time)
 
         control_mouce(player)
 
@@ -78,7 +70,8 @@ while True:
         drawing.draw_fps()
         drawing.draw_interface(player)
 
-        floor, current_level_number, game_cycle, finish_lvl_time = player.update_death(floor, current_level_number, game_cycle, finish_lvl_time)
+        floor, current_level_number, game_cycle, finish_lvl_time = \
+            player.update_death(floor, current_level_number, game_cycle, finish_lvl_time)
         player.update(clock.get_fps())
         for obj in floor.object_list:
             if isinstance(obj, Enemy):
