@@ -194,3 +194,26 @@ def is_there_a_dot_behind_the_wall(point1, point2, build_list):
             if intersection:
                 return True
     return False
+
+
+def is_the_object_available_for_interaction(player, obj, floor, REQUIRED_DISTANCE=None, REQUIRED_FOV=None):
+    if REQUIRED_DISTANCE is None:
+        REQUIRED_DISTANCE = 5
+    if REQUIRED_FOV is None:
+        REQUIRED_FOV = player.fov_w * 1 / 5
+
+    # чтобы объект доступен для взаимодействия, он должен быть:
+    #   на достаточно близком расстоянии
+    dist = find_dist(player, obj)
+    if dist > REQUIRED_DISTANCE:
+        return False
+
+    #   попадать в зону угла атаки
+    if not is_the_point_in_the_field_of_view(player, player.angle_w, REQUIRED_FOV, obj):
+        return False
+
+    #   не должен находиться за стеной
+    if is_there_a_dot_behind_the_wall(player, obj, floor.build_list):
+        return False
+
+    return True

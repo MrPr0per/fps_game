@@ -1,11 +1,12 @@
 import pygame
 import math
 import time
+import random
 
 import debug
 from settings import *
 from geometry import Ray, Line_segment, Point, Line, Column
-from geometry import find_dist, find_angle_point, is_the_point_in_the_field_of_view
+from geometry import *
 from resourses import *
 from enemy import *
 
@@ -32,6 +33,11 @@ class Drawing:
         self.clock = clock
         self.font_fps = pygame.font.SysFont('Arial', 36, bold=True)
         self.font_info = pygame.font.SysFont('Lucida Console', 15, bold=True)
+        self.pixel_font_size = WIDTH // 50
+        self.pixel_font = pygame.font.Font('resourses/fonts/font1.ttf', self.pixel_font_size)
+        self.big_pixel_font_size = WIDTH // 30
+        self.big_pixel_font = pygame.font.Font('resourses/fonts/font1.ttf', self.big_pixel_font_size)
+
         self.all_object_to_draw = []
 
     def clear_screen(self):
@@ -91,8 +97,11 @@ class Drawing:
             texture1 = pygame.transform.scale(texture1, (WIDTH, HEIGHT))
             sc.blit(texture1, (0, 0))
         else:
-            texture1 = texture.subsurface(offset_x, offset_y, texture.get_width() - offset_x, crop_height)
-            texture2 = texture.subsurface(0, offset_y, crop_width - (texture.get_width() - offset_x), crop_height)
+            texture1 = texture.subsurface(offset_x, offset_y, texture.get_width() - offset_x,
+                                          crop_height)
+            texture2 = texture.subsurface(0, offset_y,
+                                          crop_width - (texture.get_width() - offset_x),
+                                          crop_height)
 
             scale = WIDTH / crop_width
             texture1 = pygame.transform.scale(texture1, (texture1.get_width() * scale + 2, HEIGHT))
@@ -107,18 +116,23 @@ class Drawing:
         # мне жалко его стирать, так что пусть пока будет
         show_debug_info = False
         if show_debug_info:
-            scale_screen = 1/5
+            scale_screen = 1 / 5
             # схематично отрисовывем текстуру неба
-            pygame.draw.rect(sc, (255, 0, 255), (0, 0, texture.get_width() * scale_screen, texture.get_height() * scale_screen), 3)
+            pygame.draw.rect(sc, (255, 0, 255), (
+                0, 0, texture.get_width() * scale_screen, texture.get_height() * scale_screen), 3)
             # схематично отрисовывем используемую ее часть
-            pygame.draw.rect(sc, (255, 255, 0), (offset_x * scale_screen, offset_y * scale_screen, crop_width * scale_screen, crop_height * scale_screen), 3)
+            pygame.draw.rect(sc, (255, 255, 0), (
+                offset_x * scale_screen, offset_y * scale_screen, crop_width * scale_screen,
+                crop_height * scale_screen), 3)
 
             # схематично отрисовываем горизонт на текстуре
             h1 = texture.get_height() / 2
-            pygame.draw.line(sc, (200, 0, 200), (0, h1 * scale_screen), (texture.get_width() * scale_screen, h1 * scale_screen), 3)
+            pygame.draw.line(sc, (200, 0, 200), (0, h1 * scale_screen),
+                             (texture.get_width() * scale_screen, h1 * scale_screen), 3)
             # схематично отрисовываем горизонт на деле
             h2 = screen_pos_horizon / (WIDTH / crop_width) + offset_y
-            pygame.draw.line(sc, (200, 200, 0), (0, h2 * scale_screen), (texture.get_width() * scale_screen, h2 * scale_screen), 3)
+            pygame.draw.line(sc, (200, 200, 0), (0, h2 * scale_screen),
+                             (texture.get_width() * scale_screen, h2 * scale_screen), 3)
             # калькулируем их разницу
             dh = h2 - h1
 
@@ -226,8 +240,10 @@ class Drawing:
                         player, player.angle_w, player.fov_w, right_border_point)):
                 continue
             if not DRAW_ALL_OBJECTS:
-                is_left_behind_wall = is_there_a_dot_behind_the_wall(player, left_border_point, floor.build_list)
-                is_right_behind_wall = is_there_a_dot_behind_the_wall(player, right_border_point, floor.build_list)
+                is_left_behind_wall = is_there_a_dot_behind_the_wall(player, left_border_point,
+                                                                     floor.build_list)
+                is_right_behind_wall = is_there_a_dot_behind_the_wall(player, right_border_point,
+                                                                      floor.build_list)
                 if is_left_behind_wall and is_right_behind_wall:
                     continue
 
@@ -317,6 +333,31 @@ class Drawing:
                                        (image.get_width() * scale, image.get_height() * scale))
         screen_pos = (HALF_WIDTH - image.get_width() / 2, HEIGHT - image.get_height())
         self.sc.blit(image, screen_pos)
+
+    def draw_help(self, player, floor):
+        for obj in floor.object_list:
+            if isinstance(obj, Item):
+                if is_the_object_available_for_interaction(player, obj, floor):
+                    label_h = HEIGHT * 0.70
+                    render = self.pixel_font.render(obj.name_for_player, False, (200, 200, 200))
+                    self.sc.blit(render, (WIDTH / 2 - render.get_width() / 2,
+                                          label_h + self.pixel_font_size * 1.1 * 0))
+                    render = self.pixel_font.render('нажмите E чтобы взять', False, (200, 200, 200))
+                    self.sc.blit(render, (WIDTH / 2 - render.get_width() / 2,
+                                          label_h + self.pixel_font_size * 1.1 * 1))
+
+    def draw_inventory(self, player, floor):
+        cell_size = 80
+        for i in range(player.inventory_size):
+            background = pygame.Surface((cell_size, cell_size)).convert_alpha()
+            background.fill((0, 0, 0, 100))
+            self.sc.blit(background, (i * cell_size, HEIGHT - cell_size))
+            pygame.draw.rect(self.sc, (200, 200, 200),
+                             (i * cell_size, HEIGHT - cell_size, cell_size, cell_size), 2)
+            if player.inventory[i] is not None:
+                image = objects_sprites[ITEMS][player.inventory[i].name][ICON]
+                image = pygame.transform.scale(image, (cell_size, cell_size))
+                self.sc.blit(image, (i * cell_size, HEIGHT - cell_size))
 
     def draw_minimap(self, player, floor):
         # self.minimap.sc.fill((0, 0, 0))
@@ -423,15 +464,59 @@ class Drawing:
         width_hp_bar = 15
         pygame.draw.rect(sc, (100, 0, 0), (30, 20, max_len_hp_bar, width_hp_bar))
         pygame.draw.rect(sc, (200, 50, 0), (
-        30, 20, max_len_hp_bar * (player.hp / player.max_xp), width_hp_bar))
+            30, 20, max_len_hp_bar * (player.hp / player.max_xp), width_hp_bar))
 
         text_list = [
             f'add_speed = {player.add_speed}',
-            f'already_hit_in_the_current_animation_cycle = {player.already_hit_in_the_current_animation_cycle}'
+            # f'already_hit_in_the_current_animation_cycle = {player.already_hit_in_the_current_animation_cycle}'
         ]
         for i in range(len(text_list)):
-            render = self.font_info.render(text_list[i], False, (0, 50, 50))
-            self.sc.blit(render, (10, (HEIGHT - len(text_list) * 20 - 20) + 20 * i))
+            render = self.font_info.render(text_list[i], False, (200, 200, 200))
+            # self.sc.blit(render, (10, (HEIGHT - len(text_list) * 20 - 20) + 20 * i))
+            self.sc.blit(render, (30, 50 + 20 * i))
+
+    def draw_game_screen(self, game_cycle, flicker_start_time, passage_time):
+
+        time_now = pygame.time.get_ticks()
+        delta_time = time_now - flicker_start_time
+        if delta_time > 800:
+            brigtness = 100
+            r = random.randint(brigtness, brigtness)
+            g = random.randint(0, brigtness)
+            b = random.randint(0, brigtness)
+            k = brigtness * 3 / sum((r, g, b))
+            r *= k
+            g *= k
+            b *= k
+            if r > 255:
+                r = 255
+            if g > 255:
+                g = 255
+            if b > 255:
+                b = 255
+
+            self.sc.fill((r, g, b))
+            flicker_start_time = time_now
+
+        if game_cycle == GAME_CYCLES.DEATH:
+            # back = Game_screens_sprites.win_back
+            image = Game_screens_sprites.death
+        if game_cycle == GAME_CYCLES.WIN:
+            # back = Game_screens_sprites.death_back
+            image = Game_screens_sprites.win
+            render = self.big_pixel_font.render(f'{passage_time // 1000} sec', True, (0, 0, 0))
+
+        # back = pygame.transform.scale(back, (WIDTH, HEIGHT))
+        scale = WIDTH / image.get_width() * 0.9
+        image = pygame.transform.scale(image,
+                                       (image.get_width() * scale, image.get_height() * scale))
+        # self.sc.blit(back, (0, 0))
+        self.sc.blit(image,
+                     (HALF_WIDTH - image.get_width() / 2, HALF_HEIGHT - image.get_height() / 2))
+        if game_cycle == GAME_CYCLES.WIN:
+            self.sc.blit(render, (HALF_WIDTH - render.get_width() / 2, HEIGHT * 0.65 - render.get_height() / 2))
+
+        return flicker_start_time
 
 
 def convert_crds_to_scren(x, y, player, minimap):

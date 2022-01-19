@@ -5,6 +5,7 @@ import debug
 from enemy import objects_group, Enemy
 from geometry import Column, Line_segment, Point
 from geometry import find_dist, find_angle_point, is_the_point_in_the_field_of_view
+import save
 
 
 class Player(Column, pygame.sprite.Sprite):
@@ -12,7 +13,8 @@ class Player(Column, pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.radius = 0.4 * COLLIDE_SCALE
         self.true_radius = 0.4
-        self.rect = pygame.Rect(x * COLLIDE_SCALE, y * COLLIDE_SCALE, ALMOST_ZERO * COLLIDE_SCALE, ALMOST_ZERO * COLLIDE_SCALE)
+        self.rect = pygame.Rect(x * COLLIDE_SCALE, y * COLLIDE_SCALE, ALMOST_ZERO * COLLIDE_SCALE,
+                                ALMOST_ZERO * COLLIDE_SCALE)
         Column.__init__(self, x=x, y=y, h=h, h_down=h_down)
 
         self.angle_w = angle_w % 360
@@ -35,21 +37,25 @@ class Player(Column, pygame.sprite.Sprite):
         self.fridge = 0.9
 
         self.angle_of_attack = 180
-        self.max_xp = 100
+        self.max_xp = 30
         self.hp = self.max_xp
         self.damage = 10
         self.in_progress_of_hit = False
         self.hit_start_time = None
-        # нужно, чтобы удар не засчитывался 10 раз за 1 кадр унамации
+        # нужно, чтобы удар не засчитывался несколько раз за 1 кадр унамации
         # (урон производится во время определенного кадра анимации)
         self.already_hit_in_the_current_animation_cycle = False
+
+        self.inventory_size = 6
+        self.inventory = [None for i in range(self.inventory_size)]
 
     def turn(self, diff_w, diff_h):
         self.angle_w = (self.angle_w + diff_w) % 360
         self.left_angle = (self.angle_w + self.fov_w / 2) % 360
         self.right_angle = (self.angle_w - self.fov_w / 2) % 360
 
-        if (self.angle_h + diff_h) % 360 <= (90 - self.fov_h / 2) or (self.angle_h + diff_h) % 360 >= (270 + self.fov_h / 2):
+        if (self.angle_h + diff_h) % 360 <= (90 - self.fov_h / 2) or (
+                self.angle_h + diff_h) % 360 >= (270 + self.fov_h / 2):
             self.angle_h = (self.angle_h + diff_h) % 360
             self.top_angle = (self.angle_h + self.fov_h / 2) % 360
             self.bott_angle = (self.angle_h - self.fov_h / 2) % 360
@@ -127,7 +133,8 @@ class Player(Column, pygame.sprite.Sprite):
                     continue
 
                 #   попадать в зону угла атаки
-                if not is_the_point_in_the_field_of_view(self, self.angle_w, self.angle_of_attack, obj):
+                if not is_the_point_in_the_field_of_view(self, self.angle_w, self.angle_of_attack,
+                                                         obj):
                     continue
 
                 #   не должен находиться за стеной
@@ -157,7 +164,6 @@ class Player(Column, pygame.sprite.Sprite):
         self.hp -= damage
         if self.hp <= 0:
             self.hp = 0
-            # TODO: создать смерть
 
     def fly(self, direction, fps):
         if fps != 0:
@@ -187,6 +193,14 @@ class Player(Column, pygame.sprite.Sprite):
     def dash(self):
         # self.dash_start_time = pygame.time.get_ticks() / 1000
         self.add_speed += 5
+
+    def update_death(self, floor, current_level_number, game_cycle, finish_lvl_time):
+        if self.hp <= 0:
+            floor, current_level_number = save.download_save()
+            self.__init__()
+            game_cycle = GAME_CYCLES.DEATH
+            finish_lvl_time = pygame.time.get_ticks()
+        return floor, current_level_number, game_cycle, finish_lvl_time
 
     def update(self, fps):
         if self.in_process_of_jumping:
@@ -227,3 +241,4 @@ class Player(Column, pygame.sprite.Sprite):
             self.add_speed = 0
         if self.add_speed > 20:
             self.add_speed = 20
+

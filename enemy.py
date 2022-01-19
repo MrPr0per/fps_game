@@ -13,7 +13,7 @@ items_group = pygame.sprite.Group()
 class Object(Column, pygame.sprite.Sprite):
     def __init__(self, x, y, h, h_down, name=BASE_OBJECT):
         Column.__init__(self, x, y, h, h_down)
-        self.name = name
+        self.name = name  # нужно для получения нужных спрайтов
         if name in objects_sprites[ENEMIES].keys():
             image = objects_sprites[ENEMIES][name][ROTATION][FRAMES][0]
         else:
@@ -122,9 +122,9 @@ class Enemy(Object):
 
 class Toflund(Enemy):
     def __init__(self, x, y, angle):
-        h = 3
+        h = 10
         h_down = 0
-        hp = 1
+        hp = 30
         damage = 1
         fow = 90
         name = TOFLUND
@@ -145,19 +145,45 @@ class Baggebo(Enemy):
 
 
 class Item(Object):
-    def __init__(self, x, y, h, h_down, name):
+    def __init__(self, x, y, h, h_down, name, name_for_player, description):
         super().__init__(x=x, y=y, h=h, h_down=h_down, name=name)
         items_group.add(self)
+        self.name_for_player = name_for_player
+        self.description = description
 
     def interaction(self, floor, player):
-        # удалить этот объект с карты
-        # добавить его в инвентарь
-        pass
+        for i in range(len(player.inventory)):
+            if player.inventory[i] is None:
+                player.inventory[i] = self
+                break
+        for i in range(len(floor.object_list)):
+            if floor.object_list[i] is self:
+                del floor.object_list[i]
+                break
 
 
-class end_lvl_crystal(Item):
-    def __init__(self, x, y):
+class End_lvl_crystal(Item):
+    def __init__(self, x, y, next_level_number):
         h = 2
         h_down = 0
         name = END_LVL_CRYSTAL
-        super().__init__(x, y, h, h_down, name)
+        name_for_player = 'кристалл телепортации'  # название объекта, которое видно в игре
+        description = 'вы чувствуете, что эта штука телепортирует вас именно туда, куда вам нужно'
+        super().__init__(x, y, h, h_down, name, name_for_player, description)
+
+        self.next_level_number = next_level_number
+
+    def interaction(self, floor, player):
+
+        return self.next_level_number
+        # floor = load_floor(self.next_level_number)
+        # save.upload_save(params={'num_floor': self.next_level_number})
+
+        # for i in range(len(player.inventory)):
+        #     if player.inventory[i] is None:
+        #         player.inventory[i] = self
+        #         break
+        # for i in range(len(floor.object_list)):
+        #     if floor.object_list[i] is self:
+        #         del floor.object_list[i]
+        #         break

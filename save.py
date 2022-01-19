@@ -17,7 +17,7 @@ def download_save():
         print('')
         print('ошибка загрузки уровня')
         print('    загружен несуществующий уровень')
-        print('    поэтому загружаю двадцатый')
+        print('    так что загружу двадцатый, тк он самый прикольный')
         current_level_number = 20
         floor = load_floor(current_level_number)
     return floor, current_level_number

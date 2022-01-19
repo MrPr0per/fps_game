@@ -7,7 +7,7 @@ from settings import *
 from player import Player
 from enemy import Enemy
 from drawing import Drawing
-from control import control
+from control import *
 from minimap import Minimap
 import floors
 from menu import main_menu
@@ -18,10 +18,11 @@ menu = main_menu
 pygame.init()
 clock = pygame.time.Clock()
 sc = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption('fps v0.1.0')
+pygame.display.set_caption('fps v1.0.0')
 
 # game_cycle = GAME_CYCLES.MAIN_MENU
 game_cycle = GAME_CYCLES.GAMEPLAY
+# game_cycle = GAME_CYCLES.WIN
 
 player = Player()
 # floor = floors.load_floor(current_level_number)
@@ -36,16 +37,20 @@ drawing = Drawing(clock, minimap, sc)
 #  ▄▀██▄█▀     ▀▀▀▀ ▀     ▀ ▀▀▀▀     ▀█▄██▀▄
 #  ▀▄▄  ▄ requirements.txt         .  ▄  ▄▄▀
 #    ▀██▀ стартовое окно           OK ▀██▀
-#  ▄ █▀   Финальное окно           .    ▀█ ▄
-#   █▄  ▄ подсчет результатов      .  ▄  ▄█
+#  ▄ █▀   Финальное окно           OK   ▀█ ▄
+#   █▄  ▄ подсчет результатов      OK ▄  ▄█
 #    ▀██  спрайты                  OK  ██▀
 #         collide                  OK
 #    ▄ ▀  анимация                 OK  ▀ ▄
-#  ▄█ ▄   3+ уровней               .    ▄ █▄
+#  ▄█ ▄   3+ уровней               OK   ▄ █▄
 #  ▀█▄ ▀█ хранение данных          OK █▀ ▄█▀
 #     ██    ▄  ▄▄▄  ▄     ▄  ▄▄▄  ▄    ██
 #     ▀██  █ ▄██▀▀▀▄ █▄ ▄█ ▄▀▀▀██▄ █  ██▀
 #     ▄▀██▄ █▀   ▀▄▀ ▄▀ ▀▄ ▀▄▀   ▀█ ▄██▀▄
+
+start_lvl_time = None
+finish_lvl_time = None
+flicker_start_time = pygame.time.get_ticks()
 
 while True:
     if game_cycle == GAME_CYCLES.MAIN_MENU:
@@ -56,34 +61,34 @@ while True:
         drawing.draw_fps()
 
     elif game_cycle == GAME_CYCLES.GAMEPLAY:
-        game_cycle, floor, player, current_level_number = control(player, clock, minimap, floor, game_cycle, current_level_number)
+        if start_lvl_time is None:
+            start_lvl_time = pygame.time.get_ticks()
 
-        # аэээ не тройте этот кусок, если его выкинуть в control,
-        # на некоторых компах не будет крутиться голова
-        sensitivity = SENSITIVITY
-        if pygame.mouse.get_focused():
-            if VERTICAL_MOVE_HEAD:
-                difference_w = pygame.mouse.get_pos()[0] - WIDTH / 2
-                difference_h = pygame.mouse.get_pos()[1] - HEIGHT / 2
-                pygame.mouse.set_pos([WIDTH / 2, HEIGHT / 2])
-                player.turn(-difference_w * sensitivity, -difference_h * sensitivity)
-            else:
-                difference_w = pygame.mouse.get_pos()[0] - WIDTH / 2
-                pygame.mouse.set_pos([WIDTH / 2, HEIGHT / 2])
-                player.turn(-difference_w * sensitivity, 0)
+        game_cycle, floor, player, current_level_number, finish_lvl_time = control(player, clock, minimap, floor, game_cycle, current_level_number, finish_lvl_time)
+
+        control_mouce(player)
 
         drawing.clear_screen()
         drawing.draw_horizon(player, floor)
         drawing.draw_world(player, floor)
         drawing.draw_player(player, floor)
+        drawing.draw_help(player, floor)
+        # drawing.draw_inventory(player, floor)
         drawing.draw_minimap(player, floor)
         drawing.draw_fps()
         drawing.draw_interface(player)
 
+        floor, current_level_number, game_cycle, finish_lvl_time = player.update_death(floor, current_level_number, game_cycle, finish_lvl_time)
         player.update(clock.get_fps())
         for obj in floor.object_list:
             if isinstance(obj, Enemy):
                 obj.update(player, floor, clock.get_fps())
 
+    elif game_cycle == GAME_CYCLES.WIN or game_cycle == GAME_CYCLES.DEATH:
+        passage_time = finish_lvl_time - start_lvl_time
+        flicker_start_time = drawing.draw_game_screen(game_cycle, flicker_start_time, passage_time)
+        game_cycle, start_lvl_time = control_splash(game_cycle, start_lvl_time)
+
     pygame.display.update()
     clock.tick(FPS)
+

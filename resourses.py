@@ -6,6 +6,7 @@ sc = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # textures
 TEXT_ILLUSION_1 = 'TEXT_ILLUSION_1'
+TEXT_ILLUSION_2 = 'TEXT_ILLUSION_2'
 TEXT_1 = 'TEXT_1'
 TEXT_2 = 'TEXT_2'
 TEXT_MISSING = 'TEXT_MISSING'
@@ -13,10 +14,23 @@ TEXT_GRADIENT = 'TEXT_GRADIENT'
 TEXT_A = 'TEXT_A'
 TEXT_KILL = 'TEXT_KILL'
 TEXT_STONE = 'TEXT_STONE'
+TEXT_STONE2 = 'TEXT_STONE2'
 TEXT_FIN = 'TEXT_FIN'
 TEXT_SAUSAGE = 'TEXT_SAUSAGE'
+TEXT_WALL1 = 'TEXT_WALL1'
+TEXT_WALL2 = 'TEXT_WALL2'
+TEXT_WALL3 = 'TEXT_WALL3'
+TEXT_DOOR = 'TEXT_DOOR'
+TEXT_TUTOR_1 = 'TEXT_TUTOR_1'
+TEXT_TUTOR_2 = 'TEXT_TUTOR_2'
+TEXT_TUTOR_3 = 'TEXT_TUTOR_3'
+TEXT_TUTOR_4 = 'TEXT_TUTOR_4'
+TEXT_WHITE = 'TEXT_WHITE'
+TEXT_MEH = 'TEXT_MEH'
+TEXT_THE_END = 'TEXT_THE_END'
 textures = {
     TEXT_ILLUSION_1:    pygame.image.load('resourses/textures/illusion1.png').convert(),
+    TEXT_ILLUSION_2:    pygame.image.load('resourses/textures/illusion3.png').convert(),
     TEXT_1:             pygame.image.load('resourses/textures/texture1.png').convert(),
     TEXT_2:             pygame.image.load('resourses/textures/texture2.png').convert(),
     TEXT_MISSING:       pygame.image.load('resourses/textures/missing_textuere.png').convert(),
@@ -24,12 +38,26 @@ textures = {
     TEXT_A:             pygame.image.load('resourses/textures/a.png').convert(),
     TEXT_KILL:          pygame.image.load('resourses/textures/kill256.png').convert(),
     TEXT_STONE:         pygame.image.load('resourses/textures/stone.png').convert(),
+    TEXT_STONE2:        pygame.image.load('resourses/textures/stone2.png').convert(),
     TEXT_FIN:           pygame.image.load('resourses/textures/fin.png').convert(),
     TEXT_SAUSAGE:       pygame.image.load('resourses/textures/kolbasa4.png').convert(),
+    TEXT_WALL1:         pygame.image.load('resourses/textures/wall1.png').convert(),
+    TEXT_WALL2:         pygame.image.load('resourses/textures/wall2.png').convert(),
+    TEXT_WALL3:         pygame.image.load('resourses/textures/wall3.png').convert(),
+    TEXT_DOOR:          pygame.image.load('resourses/textures/door.png').convert(),
+    TEXT_TUTOR_1:       pygame.image.load(f'resourses/textures/tutor1.png').convert(),
+    TEXT_TUTOR_2:       pygame.image.load(f'resourses/textures/tutor2.png').convert(),
+    TEXT_TUTOR_3:       pygame.image.load(f'resourses/textures/tutor3.png').convert(),
+    TEXT_TUTOR_4:       pygame.image.load(f'resourses/textures/tutor4.png').convert(),
+    TEXT_WHITE:         pygame.image.load(f'resourses/textures/white.png').convert(),
+    TEXT_MEH:           pygame.image.load(f'resourses/textures/meh.png').convert(),
+    TEXT_THE_END:       pygame.image.load(f'resourses/textures/the end.png').convert(),
+
 }
 
-num_skys = 3
+num_skys = 7
 SKYS = [pygame.image.load(f'resourses/textures/sky{i}.png').convert() for i in range(1, num_skys + 1)]
+
 
 # названия категорий
 ENEMIES = 'ENEMIES'
@@ -46,6 +74,7 @@ END_LVL_CRYSTAL = 'END_LVL_CRYSTAL'
 # названия поз:
 DEAD = 'DEAD'
 DEFAULT = 'DEFAULT'
+ICON = 'ICON'
 # названия анимаций
 ROTATION = 'ROTATION'
 ATTACK = 'ATTACK'
@@ -100,7 +129,8 @@ objects_sprites = {
     },
     ITEMS: {
         END_LVL_CRYSTAL: {
-            DEFAULT: pygame.image.load('resourses/objects/items/end_lvl_crystal/base5.png').convert_alpha()
+            DEFAULT: pygame.image.load('resourses/objects/items/end_lvl_crystal/base5.png').convert_alpha(),
+            ICON:    pygame.image.load('resourses/objects/items/end_lvl_crystal/ico.png').convert_alpha(),
         }
     },
 }
@@ -110,3 +140,10 @@ class Main_menu_sprites:
     background = pygame.image.load('resourses/menu/background2.png').convert()
     logo = pygame.image.load('resourses/menu/logo.png').convert_alpha()
     cursor = pygame.image.load('resourses/menu/cursor2.png').convert_alpha()
+
+
+class Game_screens_sprites:
+    win = pygame.image.load('resourses/menu/win_screen.png').convert_alpha()
+    death = pygame.image.load('resourses/menu/die_screen.png').convert_alpha()
+    win_back = pygame.image.load('resourses/menu/win_back.png').convert_alpha()
+    death_back = pygame.image.load('resourses/menu/deadh_back.png').convert_alpha()
