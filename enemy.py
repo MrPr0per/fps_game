@@ -187,3 +187,25 @@ class End_lvl_crystal(Item):
         #     if floor.object_list[i] is self:
         #         del floor.object_list[i]
         #         break
+
+
+class Cat1(Item):
+    def __init__(self, x, y):
+        h = 2
+        h_down = 0
+        name = CAT1
+        name_for_player = 'коська'  # название объекта, которое видно в игре
+        description = ''
+        super().__init__(x, y, h, h_down, name, name_for_player, description)
+
+
+class Cat2(Item):
+    def __init__(self, x, y):
+        h = 2
+        h_down = 0
+        name = CAT2
+        name_for_player = 'феликс'  # название объекта, которое видно в игре
+        description = ''
+        super().__init__(x, y, h, h_down, name, name_for_player, description)
+
+

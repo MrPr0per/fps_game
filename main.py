@@ -65,7 +65,7 @@ while True:
         drawing.draw_world(player, floor)
         drawing.draw_player(player, floor)
         drawing.draw_help(player, floor)
-        # drawing.draw_inventory(player, floor)
+        drawing.draw_inventory(player, floor)
         drawing.draw_minimap(player, floor)
         drawing.draw_fps()
         drawing.draw_interface(player)

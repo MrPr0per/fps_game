@@ -37,7 +37,8 @@ class Menu_panel:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        exit()
+                        # exit()
+                        return GAME_CYCLES.GAMEPLAY, floor, player, menu, current_level_number
 
             # return GAME_CYCLES.MAIN_MENU, floor, player, menu, current_level_number
 

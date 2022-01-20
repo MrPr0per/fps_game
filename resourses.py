@@ -28,6 +28,9 @@ TEXT_TUTOR_4 = 'TEXT_TUTOR_4'
 TEXT_WHITE = 'TEXT_WHITE'
 TEXT_MEH = 'TEXT_MEH'
 TEXT_THE_END = 'TEXT_THE_END'
+TEXT_LISTVA = 'TEXT_LISTVA'
+TEXT_PARTIYA = 'TEXT_PARTIYA'
+
 textures = {
     TEXT_ILLUSION_1:    pygame.image.load('resourses/textures/illusion1.png').convert(),
     TEXT_ILLUSION_2:    pygame.image.load('resourses/textures/illusion3.png').convert(),
@@ -52,10 +55,12 @@ textures = {
     TEXT_WHITE:         pygame.image.load(f'resourses/textures/white.png').convert(),
     TEXT_MEH:           pygame.image.load(f'resourses/textures/meh.png').convert(),
     TEXT_THE_END:       pygame.image.load(f'resourses/textures/the end.png').convert(),
+    TEXT_LISTVA:        pygame.image.load(f'resourses/textures/listva.png').convert(),
+    TEXT_PARTIYA:       pygame.image.load(f'resourses/textures/partya_dovolna.png').convert(),
 
 }
 
-num_skys = 7
+num_skys = 9
 SKYS = [pygame.image.load(f'resourses/textures/sky{i}.png').convert() for i in range(1, num_skys + 1)]
 
 
@@ -70,6 +75,8 @@ TOFLUND = 'TOFLUND'
 BAGGEBO = 'BAGGEBO'
 # названия предметов
 END_LVL_CRYSTAL = 'END_LVL_CRYSTAL'
+CAT1 = 'CAT1'
+CAT2 = 'CAT2'
 
 # названия поз:
 DEAD = 'DEAD'
@@ -131,7 +138,15 @@ objects_sprites = {
         END_LVL_CRYSTAL: {
             DEFAULT: pygame.image.load('resourses/objects/items/end_lvl_crystal/base5.png').convert_alpha(),
             ICON:    pygame.image.load('resourses/objects/items/end_lvl_crystal/ico.png').convert_alpha(),
-        }
+        },
+        CAT1: {
+            DEFAULT: pygame.image.load('resourses/objects/items/cat1/default.png').convert_alpha(),
+            ICON:    pygame.image.load('resourses/objects/items/cat1/default.png').convert_alpha(),
+        },
+        CAT2: {
+            DEFAULT: pygame.image.load('resourses/objects/items/cat2/default.png').convert_alpha(),
+            ICON:    pygame.image.load('resourses/objects/items/cat2/default.png').convert_alpha(),
+        },
     },
 }
 

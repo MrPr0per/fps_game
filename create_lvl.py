@@ -345,7 +345,7 @@ if __name__ == '__main__':
 
     # build_list = [[False, []]]
     editable_floor = Floor(build_list=[Build(column_list=[], is_closed=False)], object_list=[])
-    # editable_floor = load_floor(106)
+    # editable_floor = load_floor(107)
 
     while True:
         CENTER_W, CENTER_H, \

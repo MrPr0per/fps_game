@@ -2442,20 +2442,60 @@ def load_floor(num_floor):
             Baggebo(x=-8.61, y=-138.99, angle=353),
             End_lvl_crystal(x=-0.01, y=-140.08, next_level_number=107),
     ], ground_color=(50, 60, 40), sky_text_num=3)
+    # if num_floor == 107:
+    #     floor = Floor(build_list=[
+    #         Build(column_list=[
+    #             Column(8, 8, 2, 0),
+    #             Column(8, -9, 2, 0),
+    #             Column(-10, -9, 2, 0),
+    #             Column(-10, 8, 2, 0),
+    #         ], is_closed=False, texture_name=TEXT_WALL3),
+    #         Build(column_list=[
+    #             Column(-10, 8, 4.5, 0),
+    #             Column(8, 8, 4.5, 0),
+    #         ], is_closed=False, texture_name=TEXT_THE_END),
+    #     ], object_list=[
+    #     ], ground_color=(20, 20, 40), sky_text_num=4)
     if num_floor == 107:
         floor = Floor(build_list=[
             Build(column_list=[
-                Column(8, 8, 2, 0),
-                Column(8, -9, 2, 0),
-                Column(-10, -9, 2, 0),
-                Column(-10, 8, 2, 0),
+                Column(-8, -5, 3, 0),
+                Column(-8, 11, 3, 0),
+                Column(10, 11, 3, 0),
+                Column(10, 1, 3, 0),
             ], is_closed=False, texture_name=TEXT_WALL3),
             Build(column_list=[
-                Column(-10, 8, 4.5, 0),
-                Column(8, 8, 4.5, 0),
+                Column(10, -0, 3, 0),
+                Column(10, -5, 3, 0),
+                Column(-8, -5, 3, 0),
+            ], is_closed=False, texture_name=TEXT_WALL3),
+            Build(column_list=[
+                Column(10, 1, 3, 0),
+                Column(13, 1, 3, 0),
+            ], is_closed=False, texture_name=TEXT_WALL1),
+            Build(column_list=[
+                Column(13, 0, 3, 0),
+                Column(10, 0, 3, 0),
+            ], is_closed=False, texture_name=TEXT_WALL1),
+            Build(column_list=[
+                Column(13, 1, 3, 0),
+                Column(13, 11, 3, 0),
+                Column(34, 11, 3, 0),
+                Column(34, -5, 3, 0),
+                Column(13, -5, 3, 0),
+                Column(13, -0, 3, 0),
+            ], is_closed=False, texture_name=TEXT_LISTVA),
+            Build(column_list=[
+                Column(-8.89, 9.78, 5, 0),
+                Column(10.67, 9.78, 5, 0),
             ], is_closed=False, texture_name=TEXT_THE_END),
+            Build(column_list=[
+                Column(13, 9, 6, 0),
+                Column(34, 9, 6, 0),
+            ], is_closed=False, texture_name=TEXT_PARTIYA),
         ], object_list=[
-        ], ground_color=(20, 20, 40), sky_text_num=4)
-
+            Cat1(x=16, y=7),
+            Cat2(x=18, y=7),
+        ], ground_color=(30, 30, 40), sky_text_num=8)
 
     return floor
